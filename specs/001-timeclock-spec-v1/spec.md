@@ -28,6 +28,18 @@ Idioma y Mercado):
 4. **Saldo de vacaciones**: se calcula automáticamente según la antigüedad del empleado, conforme a la tabla de
    días de vacaciones de la LFT (incluida la reforma de "vacaciones dignas").
 
+## Clarifications
+
+### Session 2026-09-22
+
+- Q: ¿Qué tipo de contraseña debe usarse para el nuevo método de marcaje por número de empleado (FR-002/FR-003)? →
+  A: PIN numérico corto (4 a 6 dígitos), sin caducidad obligatoria en v1.
+- Q: ¿Qué tamaño de organización debe soportar el sistema en esta versión, para calibrar las métricas de éxito? →
+  A: Pequeña/mediana empresa — hasta 500 empleados activos.
+- Q: ¿Qué debe pasar con una marca si el sistema central (backend) está caído, no solo el dispositivo del
+  empleado? → A: Se extiende el mismo mecanismo de "pendiente de sincronización" ya definido para falta de
+  conectividad del dispositivo, sin definir un SLA de disponibilidad numérico formal en esta versión.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Registrar marca de asistencia validada por ubicación, con soporte sin conexión (Priority: P1)
@@ -37,7 +49,7 @@ portal web o un terminal RFID/biométrico. El sistema valida que la marca ocurra
 (geofence) de su centro de trabajo antes de aceptarla como válida. Si el empleado no tiene conexión, la marca se
 guarda localmente en la app y se sincroniza automáticamente al recuperar la red. Cuando el canal no cuenta con
 biometría facial habilitada (por ejemplo, un terminal sin ese hardware), el empleado puede identificarse
-alternativamente con su número de empleado y una contraseña.
+alternativamente con su número de empleado y un PIN numérico (4 a 6 dígitos).
 
 **Why this priority**: Es el flujo del que depende todo lo demás (cálculo de horas, presencia, pre-nómina). Sin
 captura de marcas confiable no hay sistema.
@@ -65,9 +77,9 @@ sincronización" y luego pasa a "sincronizada" al recuperar la red — todo desd
    (por ejemplo, tras una reconexión intermitente), **Then** el sistema la descarta como duplicada sin generar
    doble conteo de horas.
 6. **Given** un terminal sin biometría facial habilitada, **When** el empleado ingresa su número de empleado y su
-   contraseña correctos, **Then** el sistema lo identifica y registra la marca correspondiente, sujeta a las
-   mismas validaciones de geofence y de entrada duplicada que las demás formas de marcaje.
-7. **Given** un intento de marcaje con número de empleado o contraseña incorrectos, **When** el empleado envía el
+   PIN correctos, **Then** el sistema lo identifica y registra la marca correspondiente, sujeta a las mismas
+   validaciones de geofence y de entrada duplicada que las demás formas de marcaje.
+7. **Given** un intento de marcaje con número de empleado o PIN incorrectos, **When** el empleado envía el
    formulario, **Then** el sistema rechaza el registro mostrando un mensaje genérico de "credenciales inválidas",
    sin indicar cuál de los dos datos es incorrecto.
 
@@ -283,9 +295,13 @@ bitácora de auditoría, incluyendo el intento de editar o borrar esa entrada de
 - **CL12**: Se intenta cargar de forma masiva un calendario de turnos con filas inválidas o con identificadores de
   empleados inexistentes — el sistema debe procesar las filas válidas y devolver un reporte claro de las filas
   rechazadas y su motivo, sin abortar toda la carga.
-- **CL13**: Un empleado ingresa su número de empleado o contraseña incorrectos de forma repetida — cada intento se
+- **CL13**: Un empleado ingresa su número de empleado o PIN incorrectos de forma repetida — cada intento se
   rechaza individualmente como credenciales inválidas (ver FR-003); esta versión no define una política de bloqueo
   de cuenta por intentos fallidos (ver Assumptions).
+- **CL14**: El sistema central (backend) no está disponible en el momento de un marcaje, aunque el dispositivo del
+  empleado sí tenga conectividad — la marca se trata igual que una marca sin conectividad del dispositivo: queda
+  como "pendiente de sincronización" y se reintenta automáticamente hasta que el sistema central se restablece
+  (ver FR-008).
 
 ## Requirements *(mandatory)*
 
@@ -295,14 +311,14 @@ bitácora de auditoría, incluyendo el intento de editar o borrar esa entrada de
 
 - **FR-001**: El sistema MUST permitir registrar una marca de entrada, salida, inicio de receso o fin de receso
   desde RFID, portal web, app móvil o terminal físico.
-- **FR-002**: El sistema MUST permitir identificar y autenticar a un empleado mediante su número de empleado y una
-  contraseña, como método de marcaje alternativo a la biometría facial, disponible en cualquier canal habilitado
-  (terminal, portal web o app móvil).
-- **FR-003**: El sistema MUST rechazar un intento de marcaje por número de empleado y contraseña cuando cualquiera
-  de los dos datos sea incorrecto, mostrando un mensaje genérico de "credenciales inválidas" sin indicar cuál de
-  los dos datos falló.
-- **FR-004**: El sistema MUST permitir a RRHH o a un Administrador asignar y restablecer la contraseña de marcaje
-  de un empleado.
+- **FR-002**: El sistema MUST permitir identificar y autenticar a un empleado mediante su número de empleado y un
+  PIN numérico de 4 a 6 dígitos, sin caducidad obligatoria en v1, como método de marcaje alternativo a la
+  biometría facial, disponible en cualquier canal habilitado (terminal, portal web o app móvil).
+- **FR-003**: El sistema MUST rechazar un intento de marcaje por número de empleado y PIN cuando cualquiera de los
+  dos datos sea incorrecto, mostrando un mensaje genérico de "credenciales inválidas" sin indicar cuál de los dos
+  datos falló.
+- **FR-004**: El sistema MUST permitir a RRHH o a un Administrador asignar y restablecer el PIN de marcaje de un
+  empleado.
 - **FR-005**: El sistema MUST rechazar el registro de una nueva entrada si el empleado ya tiene una entrada abierta
   sin su salida correspondiente.
 - **FR-006**: El sistema MUST validar, para cada marca con geolocalización, que las coordenadas capturadas estén
@@ -312,7 +328,8 @@ bitácora de auditoría, incluyendo el intento de editar o borrar esa entrada de
   prueba de vida (liveness), de modo que una futura fase pueda habilitar esa validación sin rediseñar el flujo de
   marcaje. El algoritmo de matching/liveness en sí queda fuera de esta versión (ver Fuera de Alcance).
 - **FR-008**: El sistema MUST permitir capturar y almacenar marcas localmente en la app móvil cuando no haya
-  conectividad, y sincronizarlas automáticamente al recuperarla.
+  conectividad del dispositivo o cuando el sistema central no esté disponible temporalmente, y sincronizarlas
+  automáticamente al restablecerse la conectividad o el servicio.
 - **FR-009**: El sistema MUST descartar automáticamente, durante la sincronización, cualquier marca duplicada, sin
   generar doble conteo de horas.
 - **FR-010**: El sistema MUST registrar como evento de seguridad todo intento de marcaje rechazado por geofencing.
@@ -422,8 +439,9 @@ bitácora de auditoría, incluyendo el intento de editar o borrar esa entrada de
 
 - **Empleado**: persona cuya asistencia se controla; incluye centro de trabajo/geofence asociado, antigüedad
   (para cálculo de vacaciones), rol y estado (activo/baja).
-- **Credencial de Marcaje**: número de empleado y contraseña que permiten identificar y autenticar a un empleado
-  al registrar una marca cuando no se usa biometría; asignada y restablecible por RRHH o Administrador.
+- **Credencial de Marcaje**: número de empleado y PIN numérico (4 a 6 dígitos) que permiten identificar y
+  autenticar a un empleado al registrar una marca cuando no se usa biometría; asignada y restablecible por RRHH o
+  Administrador.
 - **Turno**: plantilla de horario (fijo, rotativo, nocturno, flexible, on-call) con hora de entrada/salida,
   receso y margen de tolerancia; se asigna a uno o varios empleados en un calendario.
 - **Marca de Asistencia**: evento de entrada, salida, inicio o fin de receso, con canal de origen, geolocalización,
@@ -466,6 +484,8 @@ bitácora de auditoría, incluyendo el intento de editar o borrar esa entrada de
   minutos desde el panel de presencia.
 - **SC-009**: Un ejecutivo puede obtener el reporte de ausentismo y horas extra de un periodo, exportado a PDF,
   Excel o CSV, en menos de 1 minuto.
+- **SC-010**: El sistema soporta organizaciones de hasta 500 empleados activos sin degradar los tiempos definidos
+  en SC-001, SC-003, SC-006, SC-008 y SC-009.
 
 ## Assumptions
 
@@ -489,11 +509,18 @@ bitácora de auditoría, incluyendo el intento de editar o borrar esa entrada de
   "Fallida".
 - Todo el producto (interfaz, mensajes, reportes) se entrega en español de México, con montos monetarios en Pesos
   Mexicanos, conforme a la constitución del proyecto.
-- El marcaje por número de empleado y contraseña es un método adicional de identificación, no reemplaza las
-  validaciones ya existentes (geofence, entrada duplicada) que siguen aplicando según el canal usado; su gestión
-  (asignación y restablecimiento) es responsabilidad de RRHH o Administrador, sin autoservicio de restablecimiento
-  por parte del propio empleado en v1. Esta versión no define una política de bloqueo de cuenta por intentos
-  fallidos repetidos (ver CL13); cada intento inválido simplemente se rechaza.
+- El marcaje por número de empleado y PIN es un método adicional de identificación, no reemplaza las validaciones
+  ya existentes (geofence, entrada duplicada) que siguen aplicando según el canal usado; su gestión (asignación y
+  restablecimiento) es responsabilidad de RRHH o Administrador, sin autoservicio de restablecimiento por parte del
+  propio empleado en v1. El PIN es numérico (4 a 6 dígitos) y no tiene caducidad obligatoria en esta versión. Esta
+  versión no define una política de bloqueo de cuenta por intentos fallidos repetidos (ver CL13); cada intento
+  inválido simplemente se rechaza.
+- El sistema está dimensionado para organizaciones de hasta 500 empleados activos en v1 (ver SC-010); un
+  crecimiento significativo por encima de ese volumen puede requerir revisar las metas de tiempo de SC-003 y
+  SC-006 en una fase posterior.
+- Una caída temporal del sistema central (backend) se trata con el mismo mecanismo de "pendiente de
+  sincronización" ya definido para la falta de conectividad del dispositivo (FR-008, CL14); esta versión no define
+  un SLA de disponibilidad numérico formal.
 
 ## Fuera de Alcance
 
