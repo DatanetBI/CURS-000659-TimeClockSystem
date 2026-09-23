@@ -44,10 +44,10 @@ historias de usuario completas.
 | # | Módulo | Historias/Requisitos de `spec.md` que cubre | Requisitos que quedan fuera de v1.0 dentro de esa misma historia |
 |---|---|---|---|
 | 1 | **Centros de trabajo** | Entidad Geofence/Centro de Trabajo (soporta FR-006) | — |
-| 2 | **Empleados y credenciales de marcaje** | FR-002, FR-003, FR-004 (US1); entidad Empleado | Roles diferenciados de FR-043 se simplifican (ver "Roles" abajo) |
-| 3 | **Turnos y asignación de turnos** | FR-011, FR-013, FR-014, FR-015 (US2) | FR-012 (reparto de horas de turno nocturno entre dos fechas) y FR-016 a FR-019 (motor de horas extra/pre-nómina) se difieren — dependen del mismo cálculo que Incidencias, diferido |
+| 2 | **Empleados y credenciales de marcaje** | FR-004 (US1); entidad Empleado | Roles diferenciados de FR-043 se simplifican (ver "Roles" abajo). FR-002/FR-003 (validar el PIN al marcar) se cubren en el Módulo 5, no aquí — este módulo solo asigna/restablece el PIN. |
+| 3 | **Turnos y asignación de turnos** | FR-011, FR-013, FR-015 (US2) | FR-012 (reparto de horas de turno nocturno entre dos fechas) y FR-016 a FR-019 (motor de horas extra/pre-nómina) se difieren — dependen del mismo cálculo que Incidencias, diferido. FR-014 (excluir empleados con restricción individual aprobada) no tiene efecto real en v1.0 porque depende de Incidencias, diferido — el resumen de asignados/excluidos (T036) existe, pero nunca excluirá a nadie hasta v1.1. |
 | 4 | **Días festivos** | Entidad Calendario de Festivos (soporta clasificación simple de "día festivo" en el portal de consulta) | Cálculo de "horas festivas" con factores de pago (FR-017/018) diferido junto con pre-nómina |
-| 5 | **Registro de asistencias (empleado)** | FR-001, FR-002, FR-003, FR-005, FR-006, FR-007 (punto de integración, no implementación), FR-010 (US1) | FR-008/FR-009 (captura y sincronización offline) y CL2/CL10/CL14 se difieren — v1.0 requiere conexión a internet para marcar |
+| 5 | **Registro de asistencias (empleado)** | FR-001, FR-002, FR-003, FR-005, FR-006, FR-007 (punto de integración, no implementación), FR-010, FR-046 (consentimiento de geolocalización) (US1) | FR-008/FR-009 (captura y sincronización offline) y CL2/CL10/CL14 se difieren — v1.0 requiere conexión a internet para marcar |
 | 6 | **Portal de consulta de asistencias (administrador)** | Consulta/filtro de marcas por empleado, fecha y centro de trabajo (versión acotada de US5/US7) | Panel de presencia en vivo con actualización automática (US4, FR-031/032), reportes con KPIs y exportación PDF/Excel/CSV (FR-037/038/039... revisar numeración vigente), y bitácora de auditoría (FR-044 a FR-047) se difieren |
 
 ### Diferido explícitamente a v1.1 (no se construye en v1.0)
@@ -58,6 +58,8 @@ historias de usuario completas.
   altas/bajas, y todo lo relacionado con `contracts/export-import.md`.
 - **Registro de asistencia sin conexión (offline)**: parte de FR-008/FR-009 y los casos límite CL2, CL10,
   CL14 de User Story 1. v1.0 asume que el empleado tiene conexión a internet al momento de marcar.
+- **Marcaje por RFID y terminal físico**: FR-001 se acota en v1.0 a los canales portal web y PIN de
+  kiosco; RFID y terminal físico (hardware de terceros) quedan para v1.1, igual que la app nativa.
 - **Motor de pre-nómina** (parte de User Story 2): clasificación de horas extra por tipo con factores de
   pago legales, reparto de turno nocturno entre fechas, recálculo automático de periodos.
 - **Panel de presencia en tiempo real y reasignación de cobertura** (User Story 4 completa).
@@ -208,6 +210,8 @@ src/
     │   ├── Marcaje/                   # Módulo 5
     │   └── ConsultaAsistencias/       # Módulo 6
     ├── Domain/
+    ├── Views/
+    │   └── Shared/                    # _Layout.cshtml compartido (T007)
     ├── Infrastructure/
     │   ├── Data/                      # DbContext, migraciones, DbSeeder (datos mock)
     │   └── Identity/                  # ASP.NET Core Identity, 2 roles, hashing de PIN

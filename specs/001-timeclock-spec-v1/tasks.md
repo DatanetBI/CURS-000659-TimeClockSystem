@@ -12,26 +12,27 @@ description: "Task list for TimeClockSystem v1.0 (6 módulos)"
 `quickstart.md`
 
 **Alcance**: Esta lista cubre únicamente los **6 módulos de v1.0** decididos en `plan.md`
-(§"Alcance de v1.0 vs. v1.1"). Cada módulo se etiqueta como una "historia" (`[US1]`...`[US6]`) en el
-mismo orden de construcción del plan — no es el mismo orden P1-P7 de `spec.md`, que describe el producto
-completo. Incidencias, Exportación/Importación, offline, motor de pre-nómina, panel de presencia en vivo,
-reportes/KPIs y auditoría quedan fuera de esta lista (diferidos a v1.1).
+(§"Alcance de v1.0 vs. v1.1"). Cada módulo se etiqueta como `[M1]`...`[M6]`, en el mismo orden de
+construcción del plan — deliberadamente **no** se usa el prefijo `US` para evitar que colisione con la
+numeración `US1`-`US7` de las historias de usuario de `spec.md` (que describe el producto completo, no
+los módulos de esta entrega). Incidencias, Exportación/Importación, offline, motor de pre-nómina, panel
+de presencia en vivo, reportes/KPIs y auditoría quedan fuera de esta lista (diferidos a v1.1).
 
 **Tests**: Se incluyen tareas de prueba ligeras (una prueba de integración por módulo, más algunas
 unitarias) porque `plan.md`/`research.md` ya comprometen xUnit + `WebApplicationFactory` como parte de la
 solución; no es un enfoque TDD estricto de "test primero" para cada tarea.
 
-## Format: `[ID] [P?] [Story] Description`
+## Format: `[ID] [P?] [Módulo?] Description`
 
 - **[P]**: Se puede ejecutar en paralelo (archivos distintos, sin dependencias pendientes)
-- **[Story]**: Módulo al que pertenece (US1 a US6, según la tabla de `plan.md`)
+- **[Módulo]**: `M1` a `M6`, según la tabla de `plan.md`
 - Cada descripción incluye la ruta de archivo exacta
 
 ## Path Conventions
 
 Proyecto único (`plan.md` §Project Structure):
 
-- `src/TimeClockSystem.Web/` — proyecto ASP.NET Core (Areas, Domain, Infrastructure, wwwroot)
+- `src/TimeClockSystem.Web/` — proyecto ASP.NET Core (Areas, Domain, Views, Infrastructure, wwwroot)
 - `tests/TimeClockSystem.Tests/` — Unit, Integration
 
 ---
@@ -64,115 +65,122 @@ Proyecto único (`plan.md` §Project Structure):
 
 ---
 
-## Phase 3: Módulo 1 — Centros de trabajo (US1) 🎯 Primer incremento probable
+## Phase 3: Módulo 1 — Centros de trabajo (M1) 🎯 Primer incremento probable
 
 **Goal**: El administrador puede crear, editar y listar centros de trabajo (geofence).
 
 **Independent Test**: Iniciar sesión como Administrador, crear un centro de trabajo (nombre, coordenadas,
 radio) y verlo aparecer en la lista — `quickstart.md` §Módulo 1.
 
-- [ ] T011 [P] [US1] Crear la entidad `CentroTrabajo` en `src/TimeClockSystem.Web/Domain/CentroTrabajo.cs` (data-model.md)
-- [ ] T012 [US1] Agregar el `DbSet<CentroTrabajo>` y su migración a `ApplicationDbContext` (depende de T011, T005)
-- [ ] T013 [US1] Extender `DbSeeder` con los 3 centros de trabajo de ejemplo (depende de T012, T010)
-- [ ] T014 [US1] Implementar `CentrosTrabajoController` (CRUD) en `src/TimeClockSystem.Web/Areas/CentrosTrabajo/CentrosTrabajoController.cs`
-- [ ] T015 [P] [US1] Crear las vistas Razor de CRUD (Index/Create/Edit) en `src/TimeClockSystem.Web/Areas/CentrosTrabajo/Views/`
-- [ ] T016 [US1] Agregar validación (radio > 0, coordenadas requeridas) en `CentrosTrabajoController`
-- [ ] T017 [US1] Restringir el acceso al rol `Administrador` en `CentrosTrabajoController`
-- [ ] T018 [P] [US1] Prueba de integración: crear/editar/listar un centro de trabajo en `tests/TimeClockSystem.Tests/Integration/CentrosTrabajoTests.cs`
+- [ ] T011 [P] [M1] Crear la entidad `CentroTrabajo` en `src/TimeClockSystem.Web/Domain/CentroTrabajo.cs` (data-model.md)
+- [ ] T012 [M1] Agregar el `DbSet<CentroTrabajo>` y su migración a `ApplicationDbContext` (depende de T011, T005)
+- [ ] T013 [M1] Extender `DbSeeder` con los 3 centros de trabajo de ejemplo (depende de T012, T010)
+- [ ] T014 [M1] Implementar `CentrosTrabajoController` (CRUD) en `src/TimeClockSystem.Web/Areas/CentrosTrabajo/CentrosTrabajoController.cs`
+- [ ] T015 [P] [M1] Crear las vistas Razor de CRUD (Index/Create/Edit) en `src/TimeClockSystem.Web/Areas/CentrosTrabajo/Views/`
+- [ ] T016 [M1] Agregar validación (radio > 0, coordenadas requeridas) en `CentrosTrabajoController`
+- [ ] T017 [M1] Restringir el acceso al rol `Administrador` en `CentrosTrabajoController`
+- [ ] T018 [P] [M1] Prueba de integración: crear/editar/listar un centro de trabajo en `tests/TimeClockSystem.Tests/Integration/CentrosTrabajoTests.cs`
 
 **Checkpoint**: Módulo 1 funcional y probable de forma independiente.
 
 ---
 
-## Phase 4: Módulo 2 — Empleados y credenciales de marcaje (US2)
+## Phase 4: Módulo 2 — Empleados y credenciales de marcaje (M2)
 
 **Goal**: El administrador puede dar de alta empleados, asociarlos a un centro de trabajo y asignarles un
-PIN de marcaje.
+PIN de marcaje. Este módulo solo gestiona los datos del empleado y del PIN (FR-004); la validación del PIN
+al momento de marcar (FR-002/FR-003) se implementa en el Módulo 5.
 
 **Independent Test**: Crear un empleado, asociarlo a un centro de trabajo del Módulo 1, asignarle un PIN —
 `quickstart.md` §Módulo 2.
 
-- [ ] T019 [P] [US2] Crear la entidad `Empleado` en `src/TimeClockSystem.Web/Domain/Empleado.cs` (referencia a `CentroTrabajo`, depende de T011)
-- [ ] T020 [P] [US2] Crear la entidad `CredencialDeMarcaje` (PinHash) en `src/TimeClockSystem.Web/Domain/CredencialDeMarcaje.cs`
-- [ ] T021 [US2] Agregar los `DbSet` de `Empleado` y `CredencialDeMarcaje` y su migración (depende de T019, T020)
-- [ ] T022 [US2] Extender `DbSeeder` con los ~12 empleados de ejemplo, cada uno con PIN ya asignado (depende de T021, T013)
-- [ ] T023 [US2] Implementar `EmpleadosController` (CRUD) en `src/TimeClockSystem.Web/Areas/Empleados/EmpleadosController.cs`
-- [ ] T024 [P] [US2] Crear las vistas Razor de CRUD de empleados en `src/TimeClockSystem.Web/Areas/Empleados/Views/`
-- [ ] T025 [US2] Implementar la acción "asignar/restablecer PIN" (hash vía `PasswordHasher<T>`) en `src/TimeClockSystem.Web/Areas/Empleados/PinController.cs` (FR-004)
-- [ ] T026 [US2] Agregar validación: `NumeroEmpleado` único, PIN numérico de 4 a 6 dígitos
-- [ ] T027 [US2] Restringir el acceso al rol `Administrador` en los controladores del módulo
-- [ ] T028 [P] [US2] Prueba de integración: alta de empleado + asignación de PIN en `tests/TimeClockSystem.Tests/Integration/EmpleadosTests.cs`
+- [ ] T019 [P] [M2] Crear la entidad `Empleado` en `src/TimeClockSystem.Web/Domain/Empleado.cs` (referencia a `CentroTrabajo`, incluye `ConsentimientoGeolocalizacion`; depende de T011; data-model.md)
+- [ ] T020 [P] [M2] Crear la entidad `CredencialDeMarcaje` (PinHash) en `src/TimeClockSystem.Web/Domain/CredencialDeMarcaje.cs`
+- [ ] T021 [M2] Agregar los `DbSet` de `Empleado` y `CredencialDeMarcaje` y su migración (depende de T019, T020)
+- [ ] T022 [M2] Extender `DbSeeder` con los ~12 empleados de ejemplo, cada uno con PIN ya asignado y consentimiento de geolocalización otorgado (depende de T021, T013)
+- [ ] T023 [M2] Implementar `EmpleadosController` (CRUD) en `src/TimeClockSystem.Web/Areas/Empleados/EmpleadosController.cs`
+- [ ] T024 [P] [M2] Crear las vistas Razor de CRUD de empleados en `src/TimeClockSystem.Web/Areas/Empleados/Views/`
+- [ ] T025 [M2] Implementar la acción "asignar/restablecer PIN" (hash vía `PasswordHasher<T>`) en `src/TimeClockSystem.Web/Areas/Empleados/PinController.cs` (FR-004)
+- [ ] T026 [M2] Agregar validación: `NumeroEmpleado` único, PIN numérico de 4 a 6 dígitos
+- [ ] T027 [M2] Restringir el acceso al rol `Administrador` en los controladores del módulo
+- [ ] T028 [P] [M2] Prueba de integración: alta de empleado + asignación de PIN en `tests/TimeClockSystem.Tests/Integration/EmpleadosTests.cs`
 
 **Checkpoint**: Módulos 1 y 2 funcionan de forma independiente y juntos.
 
 ---
 
-## Phase 5: Módulo 3 — Turnos y asignación de turnos (US3)
+## Phase 5: Módulo 3 — Turnos y asignación de turnos (M3)
 
-**Goal**: El administrador puede crear turnos y asignarlos a empleados, individual o masivamente.
+**Goal**: El administrador puede crear turnos y asignarlos a empleados, individual o masivamente. La
+exclusión de empleados con una "restricción horaria individual aprobada" (FR-014) no tiene efecto en
+v1.0: esa aprobación depende del módulo de Incidencias, diferido a v1.1; el resumen de asignados/excluidos
+existe (T036), pero en v1.0 nunca excluirá a nadie por esa causa.
 
 **Independent Test**: Crear un turno con tolerancia, asignarlo a un empleado del Módulo 2 y a un grupo —
 `quickstart.md` §Módulo 3.
 
-- [ ] T029 [P] [US3] Crear la entidad `Turno` en `src/TimeClockSystem.Web/Domain/Turno.cs`
-- [ ] T030 [P] [US3] Crear la entidad `AsignacionTurno` en `src/TimeClockSystem.Web/Domain/AsignacionTurno.cs` (referencia a `Empleado`, depende de T019)
-- [ ] T031 [US3] Agregar los `DbSet` de `Turno` y `AsignacionTurno` y su migración (depende de T029, T030)
-- [ ] T032 [US3] Extender `DbSeeder` con 2-3 turnos de ejemplo y sus asignaciones (depende de T031, T022)
-- [ ] T033 [US3] Implementar `TurnosController` (CRUD de turno) en `src/TimeClockSystem.Web/Areas/Turnos/TurnosController.cs`
-- [ ] T034 [P] [US3] Crear las vistas Razor de CRUD de turnos en `src/TimeClockSystem.Web/Areas/Turnos/Views/`
-- [ ] T035 [US3] Implementar la asignación individual de turno a un empleado (acción + vista)
-- [ ] T036 [US3] Implementar la asignación masiva a un grupo de empleados, con resumen de asignados/excluidos (FR-013/FR-014)
-- [ ] T037 [US3] Agregar validación: `ToleranciaMinutos` ≥ 0 y menor que la duración del turno (FR-015)
-- [ ] T038 [P] [US3] Prueba de integración: crear turno + asignación masiva en `tests/TimeClockSystem.Tests/Integration/TurnosTests.cs`
+- [ ] T029 [P] [M3] Crear la entidad `Turno` en `src/TimeClockSystem.Web/Domain/Turno.cs`
+- [ ] T030 [P] [M3] Crear la entidad `AsignacionTurno` en `src/TimeClockSystem.Web/Domain/AsignacionTurno.cs` (referencia a `Empleado`, depende de T019)
+- [ ] T031 [M3] Agregar los `DbSet` de `Turno` y `AsignacionTurno` y su migración (depende de T029, T030)
+- [ ] T032 [M3] Extender `DbSeeder` con 2-3 turnos de ejemplo y sus asignaciones (depende de T031, T022)
+- [ ] T033 [M3] Implementar `TurnosController` (CRUD de turno) en `src/TimeClockSystem.Web/Areas/Turnos/TurnosController.cs`
+- [ ] T034 [P] [M3] Crear las vistas Razor de CRUD de turnos en `src/TimeClockSystem.Web/Areas/Turnos/Views/`
+- [ ] T035 [M3] Implementar la asignación individual de turno a un empleado (acción + vista)
+- [ ] T036 [M3] Implementar la asignación masiva a un grupo de empleados, con resumen de asignados/excluidos (FR-013/FR-014 — ver nota de alcance arriba: en v1.0 el conteo de excluidos siempre será cero)
+- [ ] T037 [M3] Agregar validación: `ToleranciaMinutos` ≥ 0 y menor que la duración del turno (FR-015)
+- [ ] T038 [P] [M3] Prueba de integración: crear turno + asignación masiva en `tests/TimeClockSystem.Tests/Integration/TurnosTests.cs`
 
 **Checkpoint**: Módulos 1 a 3 funcionan de forma independiente y juntos.
 
 ---
 
-## Phase 6: Módulo 4 — Días festivos (US4)
+## Phase 6: Módulo 4 — Días festivos (M4)
 
 **Goal**: El administrador mantiene un calendario de días festivos.
 
 **Independent Test**: Dar de alta una fecha festiva y verla en el catálogo — `quickstart.md` §Módulo 4.
 
-- [ ] T039 [P] [US4] Crear la entidad `DiaFestivo` en `src/TimeClockSystem.Web/Domain/DiaFestivo.cs`
-- [ ] T040 [US4] Agregar el `DbSet<DiaFestivo>` y su migración (depende de T039)
-- [ ] T041 [US4] Extender `DbSeeder` con 2-3 fechas festivas de ejemplo (depende de T040)
-- [ ] T042 [US4] Implementar `DiasFestivosController` (CRUD) en `src/TimeClockSystem.Web/Areas/DiasFestivos/DiasFestivosController.cs`
-- [ ] T043 [P] [US4] Crear las vistas Razor de CRUD de días festivos en `src/TimeClockSystem.Web/Areas/DiasFestivos/Views/`
-- [ ] T044 [P] [US4] Prueba de integración: alta de un día festivo en `tests/TimeClockSystem.Tests/Integration/DiasFestivosTests.cs`
+- [ ] T039 [P] [M4] Crear la entidad `DiaFestivo` en `src/TimeClockSystem.Web/Domain/DiaFestivo.cs`
+- [ ] T040 [M4] Agregar el `DbSet<DiaFestivo>` y su migración (depende de T039)
+- [ ] T041 [M4] Extender `DbSeeder` con 2-3 fechas festivas de ejemplo (depende de T040)
+- [ ] T042 [M4] Implementar `DiasFestivosController` (CRUD) en `src/TimeClockSystem.Web/Areas/DiasFestivos/DiasFestivosController.cs`
+- [ ] T043 [P] [M4] Crear las vistas Razor de CRUD de días festivos en `src/TimeClockSystem.Web/Areas/DiasFestivos/Views/`
+- [ ] T044 [P] [M4] Prueba de integración: alta de un día festivo en `tests/TimeClockSystem.Tests/Integration/DiasFestivosTests.cs`
 
 **Checkpoint**: Módulos 1 a 4 funcionan de forma independiente y juntos.
 
 ---
 
-## Phase 7: Módulo 5 — Registro de asistencias (US5)
+## Phase 7: Módulo 5 — Registro de asistencias (M5)
 
 **Goal**: Un empleado registra su marca de entrada/salida/receso en línea (portal o PIN de kiosco), con
-validación de geofence.
+validación de geofence y de consentimiento de geolocalización. Este módulo implementa la validación real
+de FR-002/FR-003 (el Módulo 2 solo gestiona el dato del PIN).
 
 **Independent Test**: Marcar entrada dentro del geofence, verla confirmada de inmediato; repetir fuera del
-geofence y con PIN incorrecto — `quickstart.md` §Módulo 5.
+geofence, con PIN incorrecto, y sin consentimiento de geolocalización registrado — `quickstart.md`
+§Módulo 5.
 
-- [ ] T045 [P] [US5] Crear la entidad `Marca` en `src/TimeClockSystem.Web/Domain/Marca.cs` (referencia a `Empleado`, depende de T019)
-- [ ] T046 [US5] Agregar el `DbSet<Marca>` y su migración (depende de T045)
-- [ ] T047 [US5] Crear la interfaz `IBiometricVerificationProvider` con una implementación por defecto sin validación real, en `src/TimeClockSystem.Web/Domain/IBiometricVerificationProvider.cs` (FR-007 — punto de integración diferido)
-- [ ] T048 [US5] Implementar `GeofenceValidator` (distancia Haversine contra `CentroTrabajo`) en `src/TimeClockSystem.Web/Domain/GeofenceValidator.cs` (depende de T011)
-- [ ] T049 [US5] Implementar `MarcajeController`: registrar marca desde una sesión de portal autenticada (depende de T046, T048)
-- [ ] T050 [US5] Implementar `PinMarcajeController`: registrar marca por número de empleado + PIN, modo kiosco sin sesión completa (depende de T025, T046) (FR-002/FR-003)
-- [ ] T051 [US5] Agregar la regla de rechazo de entrada duplicada si ya existe una entrada abierta (FR-005)
-- [ ] T052 [US5] Registrar un evento de seguridad cuando una marca se rechaza por geofence (FR-010)
-- [ ] T053 [P] [US5] Crear las vistas Razor de marcaje (portal y kiosco), responsivas, en `src/TimeClockSystem.Web/Areas/Marcaje/Views/`
-- [ ] T054 [US5] Extender `DbSeeder` con marcas de ejemplo de días anteriores (depende de T046, T041)
-- [ ] T055 [P] [US5] Prueba unitaria de `GeofenceValidator` (dentro/fuera del radio) en `tests/TimeClockSystem.Tests/Unit/GeofenceValidatorTests.cs`
-- [ ] T056 [P] [US5] Prueba de integración: marcar entrada/salida, entrada duplicada, fuera de geofence, PIN inválido en `tests/TimeClockSystem.Tests/Integration/MarcajeTests.cs`
+- [ ] T045 [P] [M5] Crear la entidad `Marca` en `src/TimeClockSystem.Web/Domain/Marca.cs` (referencia a `Empleado`, depende de T019)
+- [ ] T046 [M5] Agregar el `DbSet<Marca>` y su migración (depende de T045)
+- [ ] T047 [M5] Crear la interfaz `IBiometricVerificationProvider` con una implementación por defecto sin validación real, en `src/TimeClockSystem.Web/Domain/IBiometricVerificationProvider.cs` (FR-007 — punto de integración diferido)
+- [ ] T048 [M5] Implementar `GeofenceValidator` (distancia Haversine contra `CentroTrabajo`) en `src/TimeClockSystem.Web/Domain/GeofenceValidator.cs` (depende de T011)
+- [ ] T049 [M5] Implementar `ConsentimientoValidator`: bloquear una marca con geolocalización si el empleado no tiene `ConsentimientoGeolocalizacion` en `true` en `src/TimeClockSystem.Web/Domain/ConsentimientoValidator.cs` (depende de T019) (FR-046, CL9)
+- [ ] T050 [M5] Implementar `MarcajeController`: registrar marca desde una sesión de portal autenticada (depende de T046, T048, T049)
+- [ ] T051 [M5] Implementar `PinMarcajeController`: registrar marca por número de empleado + PIN, modo kiosco sin sesión completa (depende de T025, T046) (FR-002/FR-003)
+- [ ] T052 [M5] Agregar la regla de rechazo de entrada duplicada si ya existe una entrada abierta (FR-005)
+- [ ] T053 [M5] Registrar un evento de seguridad cuando una marca se rechaza por geofence (FR-010)
+- [ ] T054 [P] [M5] Crear las vistas Razor de marcaje (portal y kiosco), responsivas, en `src/TimeClockSystem.Web/Areas/Marcaje/Views/`
+- [ ] T055 [M5] Extender `DbSeeder` con marcas de ejemplo de días anteriores (depende de T046, T041)
+- [ ] T056 [P] [M5] Prueba unitaria de `GeofenceValidator` (dentro/fuera del radio) en `tests/TimeClockSystem.Tests/Unit/GeofenceValidatorTests.cs`
+- [ ] T057 [P] [M5] Prueba de integración: marcar entrada/salida, entrada duplicada, fuera de geofence, PIN inválido, sin consentimiento de geolocalización en `tests/TimeClockSystem.Tests/Integration/MarcajeTests.cs`
 
 **Checkpoint**: Módulos 1 a 5 funcionan de forma independiente y juntos — este es el primer punto donde
 un empleado real puede usar la aplicación de principio a fin.
 
 ---
 
-## Phase 8: Módulo 6 — Portal de consulta de asistencias (US6)
+## Phase 8: Módulo 6 — Portal de consulta de asistencias (M6)
 
 **Goal**: El administrador filtra y consulta las marcas registradas, viendo si cada una fue puntual/tardía
 y si cayó en día festivo.
@@ -180,12 +188,12 @@ y si cayó en día festivo.
 **Independent Test**: Filtrar por empleado, fecha y centro de trabajo, y verificar los indicadores —
 `quickstart.md` §Módulo 6.
 
-- [ ] T057 [US6] Implementar `PuntualidadCalculator` (compara `Marca` contra el `Turno` asignado ese día + tolerancia) en `src/TimeClockSystem.Web/Domain/PuntualidadCalculator.cs` (depende de T045, T031)
-- [ ] T058 [US6] Implementar `ConsultaAsistenciasController` con filtros por empleado, fecha y centro de trabajo en `src/TimeClockSystem.Web/Areas/ConsultaAsistencias/ConsultaAsistenciasController.cs` (depende de T057)
-- [ ] T059 [P] [US6] Crear la vista Razor de resultados (tabla filtrable, responsiva) en `src/TimeClockSystem.Web/Areas/ConsultaAsistencias/Views/`
-- [ ] T060 [US6] Señalar en los resultados si el día correspondiente es festivo (depende de T039)
-- [ ] T061 [US6] Restringir el acceso al rol `Administrador`
-- [ ] T062 [P] [US6] Prueba de integración: filtros por empleado/fecha/centro y verificación de indicadores en `tests/TimeClockSystem.Tests/Integration/ConsultaAsistenciasTests.cs`
+- [ ] T058 [M6] Implementar `PuntualidadCalculator` (compara `Marca` contra el `Turno` asignado ese día + tolerancia) en `src/TimeClockSystem.Web/Domain/PuntualidadCalculator.cs` (depende de T045, T031)
+- [ ] T059 [M6] Implementar `ConsultaAsistenciasController` con filtros por empleado, fecha y centro de trabajo en `src/TimeClockSystem.Web/Areas/ConsultaAsistencias/ConsultaAsistenciasController.cs` (depende de T058)
+- [ ] T060 [P] [M6] Crear la vista Razor de resultados (tabla filtrable, responsiva) en `src/TimeClockSystem.Web/Areas/ConsultaAsistencias/Views/`
+- [ ] T061 [M6] Señalar en los resultados si el día correspondiente es festivo (depende de T039)
+- [ ] T062 [M6] Restringir el acceso al rol `Administrador`
+- [ ] T063 [P] [M6] Prueba de integración: filtros por empleado/fecha/centro y verificación de indicadores en `tests/TimeClockSystem.Tests/Integration/ConsultaAsistenciasTests.cs`
 
 **Checkpoint**: Los 6 módulos de v1.0 funcionan de forma independiente y en conjunto.
 
@@ -195,11 +203,12 @@ y si cayó en día festivo.
 
 **Purpose**: Mejoras que afectan a los 6 módulos.
 
-- [ ] T063 [P] Revisar que toda la interfaz esté en español de México en los 6 módulos (Principio II de la constitución)
-- [ ] T064 [P] Ejecutar `quickstart.md` módulo por módulo y confirmar manualmente cada criterio de aceptación (Principio IV)
-- [ ] T065 Revisar que ningún secreto ni cadena de conexión esté en el código fuente; confirmar el uso de variables de entorno (Principio V)
-- [ ] T066 [P] Pulir mensajes de validación y manejo de errores en los 6 módulos
-- [ ] T067 Ejecutar `dotnet test` completo y confirmar que toda la suite pasa
+- [ ] T064 [P] Revisar que toda la interfaz esté en español de México en los 6 módulos (Principio II de la constitución)
+- [ ] T065 [P] Ejecutar `quickstart.md` módulo por módulo y confirmar manualmente cada criterio de aceptación (Principio IV)
+- [ ] T066 Revisar que ningún secreto ni cadena de conexión esté en el código fuente; confirmar el uso de variables de entorno (Principio V)
+- [ ] T067 [P] Pulir mensajes de validación y manejo de errores en los 6 módulos
+- [ ] T068 Ejecutar `dotnet test` completo y confirmar que toda la suite pasa
+- [ ] T069 [P] Prueba de carga ligera: sembrar 500 empleados de ejemplo y medir el tiempo de respuesta del marcaje y de la consulta (SC-010) en `tests/TimeClockSystem.Tests/Integration/EscalaTests.cs`
 
 ---
 
@@ -219,12 +228,12 @@ y si cayó en día festivo.
 
 | Módulo | Depende de |
 |---|---|
-| US1 — Centros de trabajo | Fase 2 (Foundational) |
-| US2 — Empleados y credenciales | US1 (el empleado necesita un centro de trabajo) |
-| US3 — Turnos y asignación | US2 (se asignan turnos a empleados existentes) |
-| US4 — Días festivos | Fase 2 (independiente de US1-US3, pero se construye en este punto por orden de negocio) |
-| US5 — Registro de asistencias | US1, US2, US3 (geofence, empleado+PIN, turno asignado) |
-| US6 — Portal de consulta | US3, US4, US5 (necesita turnos, festivos y marcas ya existentes) |
+| M1 — Centros de trabajo | Fase 2 (Foundational) |
+| M2 — Empleados y credenciales | M1 (el empleado necesita un centro de trabajo) |
+| M3 — Turnos y asignación | M2 (se asignan turnos a empleados existentes) |
+| M4 — Días festivos | Fase 2 (independiente de M1-M3, pero se construye en este punto por orden de negocio) |
+| M5 — Registro de asistencias | M1, M2, M3 (geofence, empleado+PIN+consentimiento, turno asignado) |
+| M6 — Portal de consulta | M3, M4, M5 (necesita turnos, festivos y marcas ya existentes) |
 
 ### Dentro de cada módulo
 
@@ -290,8 +299,9 @@ Cada módulo suma valor sin romper los anteriores, siguiendo exactamente el orde
 ## Notes
 
 - `[P]` = archivos distintos, sin dependencias pendientes.
-- La etiqueta de módulo (`[US1]`...`[US6]`) mapea cada tarea a la tabla de alcance de `plan.md`, no a la
-  numeración original de historias de usuario de `spec.md`.
+- La etiqueta de módulo (`[M1]`...`[M6]`) mapea cada tarea a la tabla de alcance de `plan.md`; se usa el
+  prefijo `M` en vez de `US` deliberadamente, para no colisionar con la numeración `US1`-`US7` de las
+  historias de usuario de `spec.md`.
 - A diferencia del patrón típico de historias independientes entre sí, estos 6 módulos son
   intencionalmente secuenciales (dependencia real de datos: turnos necesitan empleados, marcaje necesita
   turnos y empleados, consulta necesita marcas) — así lo pidió el negocio para poder probar la app paso a

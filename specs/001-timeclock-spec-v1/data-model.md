@@ -29,9 +29,11 @@ Módulo 2.
 | Nombre | texto | |
 | CentroTrabajoId | referencia a CentroTrabajo | |
 | Estado | activo / baja | |
+| ConsentimientoGeolocalizacion | booleano + fecha | Debe ser `true` antes de aceptar una marca con geolocalización (FR-046, CL9) |
 
 **Reglas de validación**: `NumeroEmpleado` es único e inmutable. Un empleado en estado "baja" no puede
-marcar asistencia.
+marcar asistencia. Una marca con geolocalización se rechaza si el empleado no tiene
+`ConsentimientoGeolocalizacion` en `true` (FR-046, CL9).
 
 ### CredencialDeMarcaje
 
