@@ -1,0 +1,47 @@
+@model IEnumerable<Turno>
+@{
+    ViewData["Title"] = "Turnos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Turnos</h1>
+    <div>
+        <a class="btn btn-outline-secondary" asp-controller="Asignaciones" asp-action="Individual">Asignar (individual)</a>
+        <a class="btn btn-outline-secondary" asp-controller="Asignaciones" asp-action="Masiva">Asignar (masiva)</a>
+        <a class="btn btn-primary" asp-action="Create">Nuevo turno</a>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Entrada</th>
+                <th>Salida</th>
+                <th>Receso (min)</th>
+                <th>Tolerancia (min)</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var turno in Model)
+        {
+            <tr>
+                <td>@turno.Nombre</td>
+                <td>@turno.Tipo</td>
+                <td>@turno.HoraEntrada.ToString(@"hh\:mm")</td>
+                <td>@turno.HoraSalida.ToString(@"hh\:mm")</td>
+                <td>@turno.DuracionRecesoMinutos</td>
+                <td>@turno.ToleranciaMinutos</td>
+                <td><a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@turno.Id">Editar</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+        <p class="text-muted">Todavía no hay turnos registrados.</p>
+    }
+</div>

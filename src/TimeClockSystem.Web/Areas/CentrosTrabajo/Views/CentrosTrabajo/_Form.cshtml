@@ -1,0 +1,28 @@
+@model CentroTrabajo
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<input type="hidden" asp-for="Id" />
+<div class="mb-3">
+    <label asp-for="Nombre" class="form-label"></label>
+    <input asp-for="Nombre" class="form-control" />
+    <span asp-validation-for="Nombre" class="text-danger"></span>
+</div>
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label asp-for="Latitud" class="form-label"></label>
+        <input asp-for="Latitud" class="form-control" />
+        <span asp-validation-for="Latitud" class="text-danger"></span>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label asp-for="Longitud" class="form-label"></label>
+        <input asp-for="Longitud" class="form-control" />
+        <span asp-validation-for="Longitud" class="text-danger"></span>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label asp-for="RadioMetros" class="form-label"></label>
+        <input asp-for="RadioMetros" class="form-control" />
+        <span asp-validation-for="RadioMetros" class="text-danger"></span>
+    </div>
+</div>
+<button type="submit" class="btn btn-primary">Guardar</button>
+<a asp-action="Index" class="btn btn-link">Cancelar</a>

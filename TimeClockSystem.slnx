@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TimeClockSystem.Web/TimeClockSystem.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TimeClockSystem.Tests/TimeClockSystem.Tests.csproj" />
+  </Folder>
+</Solution>

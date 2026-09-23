@@ -1,0 +1,21 @@
+@{
+    ViewData["Title"] = "Inicio";
+}
+
+<div class="text-center">
+    <h1 class="display-6">TimeClockSystem</h1>
+    <p class="lead">Gestión de asistencias — v1.0</p>
+    @if (User.Identity?.IsAuthenticated != true)
+    {
+        <a class="btn btn-primary" asp-controller="Cuenta" asp-action="IniciarSesion">Iniciar sesión</a>
+        <a class="btn btn-outline-secondary" asp-area="Marcaje" asp-controller="PinMarcaje" asp-action="Index">Marcar por PIN (kiosco)</a>
+    }
+    else if (User.IsInRole("Empleado"))
+    {
+        <a class="btn btn-primary" asp-area="Marcaje" asp-controller="Marcaje" asp-action="Index">Marcar asistencia</a>
+    }
+    else if (User.IsInRole("Administrador"))
+    {
+        <a class="btn btn-primary" asp-area="ConsultaAsistencias" asp-controller="ConsultaAsistencias" asp-action="Index">Consultar asistencias</a>
+    }
+</div>

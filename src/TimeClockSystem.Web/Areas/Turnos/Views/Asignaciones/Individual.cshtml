@@ -1,0 +1,35 @@
+@model TimeClockSystem.Web.Areas.Turnos.Models.AsignacionIndividualViewModel
+@{
+    ViewData["Title"] = "Asignar turno (individual)";
+}
+
+<h1 class="h3 mb-3">Asignar turno a un empleado</h1>
+
+<form asp-action="Individual" method="post" class="col-md-6">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="EmpleadoId" class="form-label"></label>
+        <select asp-for="EmpleadoId" asp-items="ViewBag.EmpleadosIndividual as SelectList" class="form-select">
+            <option value="">-- Selecciona un empleado --</option>
+        </select>
+        <span asp-validation-for="EmpleadoId" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="TurnoId" class="form-label"></label>
+        <select asp-for="TurnoId" asp-items="ViewBag.Turnos as SelectList" class="form-select">
+            <option value="">-- Selecciona un turno --</option>
+        </select>
+        <span asp-validation-for="TurnoId" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Fecha" class="form-label"></label>
+        <input asp-for="Fecha" class="form-control" type="date" />
+        <span asp-validation-for="Fecha" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Asignar</button>
+    <a asp-action="Index" asp-controller="Turnos" class="btn btn-link">Volver a turnos</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

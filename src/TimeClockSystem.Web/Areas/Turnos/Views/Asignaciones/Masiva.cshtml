@@ -1,0 +1,43 @@
+@model TimeClockSystem.Web.Areas.Turnos.Models.AsignacionMasivaViewModel
+@{
+    ViewData["Title"] = "Asignar turno (masiva)";
+    var empleados = (IEnumerable<Empleado>)ViewBag.Empleados;
+}
+
+<h1 class="h3 mb-3">Asignar turno a un grupo de empleados</h1>
+
+<form asp-action="Masiva" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="TurnoId" class="form-label"></label>
+            <select asp-for="TurnoId" asp-items="ViewBag.Turnos as SelectList" class="form-select">
+                <option value="">-- Selecciona un turno --</option>
+            </select>
+            <span asp-validation-for="TurnoId" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Fecha" class="form-label"></label>
+            <input asp-for="Fecha" class="form-control" type="date" />
+            <span asp-validation-for="Fecha" class="text-danger"></span>
+        </div>
+    </div>
+
+    <label class="form-label">Empleados a asignar</label>
+    <div class="border rounded p-2 mb-3" style="max-height: 300px; overflow-y: auto;">
+        @foreach (var empleado in empleados)
+        {
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="EmpleadoIdsSeleccionados" value="@empleado.Id" id="emp-@empleado.Id" />
+                <label class="form-check-label" for="emp-@empleado.Id">@empleado.NumeroEmpleado — @empleado.Nombre</label>
+            </div>
+        }
+    </div>
+
+    <button type="submit" class="btn btn-primary">Asignar al grupo</button>
+    <a asp-action="Index" asp-controller="Turnos" class="btn btn-link">Volver a turnos</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
