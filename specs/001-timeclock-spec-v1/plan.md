@@ -1,91 +1,171 @@
 # Implementation Plan: TimeClockSystem v1.0 — Gestión de Asistencias
 
-**Branch**: `001-timeclock-spec-v1` | **Date**: 2026-09-22 | **Spec**: [spec.md](./spec.md)
+**Branch**: `001-timeclock-spec-v1` | **Date**: 2026-09-22 (revisado) | **Spec**: [spec.md](./spec.md)
 
 **Input**: Feature specification from `/specs/001-timeclock-spec-v1/spec.md`
 
+> **Revisión de este plan**: esta versión reemplaza la anterior. El cambio principal es de **alcance**,
+> no de arquitectura: se reduce v1.0 a los 6 módulos esenciales para que el producto pueda publicarse en
+> línea de inmediato, probarse paso a paso, y funcionar en modo conectado (sin soporte offline). El resto
+> de `spec.md` (que sigue vigente como visión completa del producto) se entrega en una v1.1 posterior.
+
 ## Resumen ejecutivo (lenguaje de negocio)
 
-TimeClockSystem v1 se construye como **una sola aplicación web**, no como una plataforma de varios
-servicios independientes. Esta decisión es la más importante del plan y se explica en detalle en
-"Decisión arquitectónica principal" más abajo. En términos de negocio: se puede publicar en línea en
-días, no en meses; hay una sola cosa que mantener, respaldar y monitorear; y el costo de hosting es el
-de una aplicación pequeña, no el de una plataforma de 9 servicios con balanceo, colas de mensajes y una
-base de datos de alta disponibilidad. A cambio, se acepta que escalar un módulo específico de forma
-independiente (por ejemplo, si algún día "Marcaje" necesita 100× más capacidad que el resto) requeriría
-una migración posterior — un costo que no se paga hoy si no hay evidencia de que se necesite.
+Esta revisión del plan reduce deliberadamente lo que se construye en la primera versión, para poder
+publicarla en línea lo antes posible y dejar que el negocio la pruebe con datos reales de inmediato. En
+lugar de construir las 7 historias de usuario completas de `spec.md` de una sola vez, v1.0 entrega **6
+módulos**, en un orden pensado para que cada uno se pueda probar en la aplicación web tan pronto como
+está listo, sin esperar a que todo el sistema esté terminado. Vacaciones/permisos/incapacidades y la
+exportación a nómina — que son las partes que más dependen de reglas legales y de un flujo de aprobación
+— se dejan para una v1.1, junto con el registro de asistencia sin conexión a internet (offline). v1.0 es
+una aplicación 100% en línea: el empleado marca su asistencia con conexión a internet; el caso de un
+empleado sin señal se resuelve en la siguiente versión.
 
-La aplicación se entrega como una interfaz web responsiva (funciona igual de bien en el navegador de un
-celular que en una computadora de escritorio); no se construye una app móvil nativa en v1. La base de
-datos se inicia con datos de ejemplo (empleados, turnos, solicitudes) para que cualquier persona del
-negocio pueda entrar y probar los criterios de aceptación de la spec sin necesidad de cargar datos
-manualmente primero.
+Sigue siendo **una sola aplicación web** (no 9 microservicios) — ver "Decisión arquitectónica principal"
+en la sección siguiente, que no cambia con esta revisión. Lo que cambia es cuánto de la funcionalidad
+total de `spec.md` entra en esta primera entrega.
 
 ## Decisión arquitectónica principal: una aplicación, no nueve microservicios
 
-Los documentos de arquitectura existentes en el repositorio (`docs/architecture/c4-containers.md` v3.0
-y `docs/architecture/decisions/ADR-001-*.md`) describen una plataforma de **9 microservicios en .NET**,
-con API Gateway, Redis (cache + bus de eventos + backplane de tiempo real), SignalR, réplicas de lectura
-de PostgreSQL, Kubernetes, trazabilidad distribuida (OpenTelemetry) y *circuit breakers* (Polly).
+*(Sin cambios respecto a la versión anterior de este plan — se conserva aquí por referencia.)*
 
-**Este plan NO adopta esa arquitectura para v1.** Se documenta la razón explícitamente porque es una
-decisión que se aparta de un documento de arquitectura previo:
+Los documentos `docs/architecture/c4-containers.md` (v3.0) y `ADR-001` describen una plataforma de 9
+microservicios con API Gateway, Redis, SignalR y Kubernetes. Este plan no adopta esa arquitectura: la
+constitución del proyecto (Principio I — *Simplicidad Ante Todo*) y la instrucción explícita de negocio
+("prioriza la simplicidad... no agregues infraestructura que la spec no requiera") tienen precedencia.
+Con el alcance de v1.0 reducido a 6 módulos (ver abajo), esta decisión queda todavía más justificada: hay
+aún menos motivo para 9 servicios independientes cuando la primera entrega ni siquiera cubre las 7
+historias de usuario completas.
 
-- La constitución del proyecto (`.specify/memory/constitution.md`, Principio I — *Simplicidad Ante
-  Todo*) exige elegir siempre la opción más simple y prohíbe construir complejidad anticipada en una
-  versión inicial.
-- El dueño del producto pidió explícitamente, al solicitar este plan: *"Prioriza la simplicidad por
-  encima de todo... No agregues nada de infraestructura que la spec no requiera"* y que la v1 se pueda
-  *"publicar online enseguida"*.
-- Ninguno de los 47 requisitos funcionales de `spec.md` exige escalado independiente por módulo,
-  múltiples equipos desplegando por separado, ni tiempo real distribuido entre varias instancias — los
-  09 servicios, Kubernetes, Redis y el API Gateway de los documentos de arquitectura existen para
-  problemas (escala multi-equipo, picos de carga dispares por módulo) que v1 no tiene todavía (v1 está
-  dimensionada para hasta 500 empleados — ver Aclaración de escala en `spec.md`).
+## Alcance de v1.0 (este plan) vs. v1.1 (diferido)
 
-**En palabras de negocio**: construir 9 servicios con Kubernetes y Redis para una primera versión que
-debe salir "enseguida" y que sirve a una sola empresa de hasta 500 empleados sería pagar por adelantado
-una complejidad operativa (más equipos de DevOps, más piezas que pueden fallar, más tiempo de puesta en
-marcha) para un problema de escala que todavía no existe. Si el negocio crece y un módulo concreto (por
-ejemplo, el marcaje biométrico) necesita escalar de forma independiente, esa migración se hace cuando
-haya evidencia real de esa necesidad — no antes.
+### Incluido en v1.0 — 6 módulos, en este orden de construcción
+
+| # | Módulo | Historias/Requisitos de `spec.md` que cubre | Requisitos que quedan fuera de v1.0 dentro de esa misma historia |
+|---|---|---|---|
+| 1 | **Centros de trabajo** | Entidad Geofence/Centro de Trabajo (soporta FR-006) | — |
+| 2 | **Empleados y credenciales de marcaje** | FR-002, FR-003, FR-004 (US1); entidad Empleado | Roles diferenciados de FR-043 se simplifican (ver "Roles" abajo) |
+| 3 | **Turnos y asignación de turnos** | FR-011, FR-013, FR-014, FR-015 (US2) | FR-012 (reparto de horas de turno nocturno entre dos fechas) y FR-016 a FR-019 (motor de horas extra/pre-nómina) se difieren — dependen del mismo cálculo que Incidencias, diferido |
+| 4 | **Días festivos** | Entidad Calendario de Festivos (soporta clasificación simple de "día festivo" en el portal de consulta) | Cálculo de "horas festivas" con factores de pago (FR-017/018) diferido junto con pre-nómina |
+| 5 | **Registro de asistencias (empleado)** | FR-001, FR-002, FR-003, FR-005, FR-006, FR-007 (punto de integración, no implementación), FR-010 (US1) | FR-008/FR-009 (captura y sincronización offline) y CL2/CL10/CL14 se difieren — v1.0 requiere conexión a internet para marcar |
+| 6 | **Portal de consulta de asistencias (administrador)** | Consulta/filtro de marcas por empleado, fecha y centro de trabajo (versión acotada de US5/US7) | Panel de presencia en vivo con actualización automática (US4, FR-031/032), reportes con KPIs y exportación PDF/Excel/CSV (FR-037/038/039... revisar numeración vigente), y bitácora de auditoría (FR-044 a FR-047) se difieren |
+
+### Diferido explícitamente a v1.1 (no se construye en v1.0)
+
+- **Incidencias y solicitudes** (User Story 3 completa): vacaciones, permisos, incapacidades, flujo de
+  aprobación y escalamiento.
+- **Exportación/Importación** (User Story 6 completa): exportación a nómina/ERP, importación de
+  altas/bajas, y todo lo relacionado con `contracts/export-import.md`.
+- **Registro de asistencia sin conexión (offline)**: parte de FR-008/FR-009 y los casos límite CL2, CL10,
+  CL14 de User Story 1. v1.0 asume que el empleado tiene conexión a internet al momento de marcar.
+- **Motor de pre-nómina** (parte de User Story 2): clasificación de horas extra por tipo con factores de
+  pago legales, reparto de turno nocturno entre fechas, recálculo automático de periodos.
+- **Panel de presencia en tiempo real y reasignación de cobertura** (User Story 4 completa).
+- **Reportes/KPIs exportables y bitácora de auditoría con inmutabilidad garantizada** (partes de User
+  Story 7). El "Portal de consulta" de v1.0 es una versión mínima de solo lectura, no el módulo completo
+  de reportería y auditoría.
+- **Diferenciación completa de roles** (FR-043: supervisor, RRHH, nómina, auditor, TI, ejecutivo): v1.0
+  solo implementa **Empleado** y **Administrador** (ver justificación abajo). Los demás roles se
+  introducen junto con las funciones que realmente los necesitan (aprobaciones → supervisor/RRHH;
+  exportación → TI/nómina; auditoría → auditor).
+
+**Por qué se difiere de esta forma (lenguaje de negocio)**: cada pieza diferida depende de otra pieza
+también diferida — no tiene sentido construir un flujo de aprobación (Incidencias) sin antes tener
+empleados y turnos, ni construir la exportación a nómina antes de tener un cálculo de horas extra
+confiable (motor de pre-nómina), ni ese cálculo antes de tener marcas de asistencia reales. Diferir todo
+ese bloque junto, de una vez, evita construir la mitad de un flujo que el usuario no podría probar de
+extremo a extremo todavía. Los 6 módulos de v1.0, en cambio, forman una cadena donde cada eslabón es
+usable por sí mismo apenas se termina (ver "Orden de construcción incremental").
+
+## Orden de construcción incremental
+
+Cada módulo se apoya únicamente en los módulos anteriores, para que el usuario administrador pueda
+probar la aplicación web paso a paso sin esperar a que todo esté terminado.
+
+1. **Centros de trabajo** → *Se puede probar*: el administrador crea/edita/lista centros de trabajo
+   (nombre, coordenadas, radio del geofence) desde el portal web.
+2. **Empleados y credenciales de marcaje** (depende de 1: un empleado se asigna a un centro de trabajo) →
+   *Se puede probar*: el administrador da de alta un empleado, lo asocia a un centro de trabajo y le
+   asigna un PIN de marcaje.
+3. **Turnos y asignación de turnos** (depende de 2: se asignan turnos a empleados ya existentes) → *Se
+   puede probar*: el administrador crea un turno (horario, tolerancia) y lo asigna a uno o varios
+   empleados, individual o masivamente.
+4. **Días festivos** (independiente, se ubica aquí para estar listo antes del marcaje) → *Se puede
+   probar*: el administrador da de alta fechas festivas en un calendario.
+5. **Registro de asistencias** (depende de 1, 2 y 3: necesita centro de trabajo, empleado+PIN y,
+   idealmente, un turno asignado) → *Se puede probar*: un empleado marca entrada/salida/receso desde el
+   portal (con geolocalización validada contra su centro de trabajo, o con número de empleado + PIN), y
+   ve la hora registrada de inmediato.
+6. **Portal de consulta de asistencias** (depende de 5: necesita marcas ya registradas para mostrar algo)
+   → *Se puede probar*: el administrador filtra y consulta las marcas registradas por empleado, fecha o
+   centro de trabajo, viendo si cada una fue puntual/tardía (según el turno) y si cayó en día festivo.
+
+Este orden coincide con la secuencia de tareas que generará `/speckit-tasks`: cada módulo es un conjunto
+de tareas cerrado y demostrable antes de empezar el siguiente.
+
+## Simplificación de roles para v1.0
+
+**Decisión**: v1.0 implementa únicamente dos roles — **Empleado** (marca su propia asistencia) y
+**Administrador** (gestiona centros de trabajo, empleados, turnos, festivos, y consulta las asistencias
+de todos). Los seis roles restantes de FR-043 (supervisor, RRHH, nómina, auditor, TI, ejecutivo) no se
+implementan todavía.
+
+**En palabras de negocio**: en v1.0 nadie aprueba nada (Incidencias está diferido) ni exporta nada a
+nómina (Exportación está diferida) ni consulta una bitácora de auditoría (diferida) — por lo tanto, los
+roles que existen únicamente para esas tareas no tienen todavía una función que cumplir. Construirlos
+ahora sería anticipar permisos para pantallas que aún no existen, lo cual contradice el Principio I de
+la constitución (nada de complejidad anticipada). Cada rol se agrega en la versión donde su
+funcionalidad correspondiente se construye.
+
+## Datos mock para la prueba de concepto
+
+Al iniciar la aplicación por primera vez, si la base de datos está vacía, se siembran automáticamente:
+
+- **3 centros de trabajo** de ejemplo (p. ej. "Oficina Central CDMX", "Planta Querétaro", "Campo Norte"),
+  cada uno con coordenadas y radio de geofence.
+- **2 usuarios Administrador** de ejemplo, con su usuario/contraseña de portal.
+- **~12 empleados** de ejemplo distribuidos entre los centros de trabajo, cada uno con su número de
+  empleado y un PIN de marcaje (4-6 dígitos) ya asignado, para poder probar el marcaje de inmediato.
+- **2-3 turnos** de ejemplo (fijo diurno, nocturno, flexible), asignados a los empleados de ejemplo.
+- **Un calendario de festivos** de ejemplo con 2-3 fechas (incluyendo una próxima, para poder probar la
+  clasificación de "día festivo" en el portal de consulta).
+- **Algunas marcas de asistencia** de ejemplo de días anteriores, para que el "Portal de consulta" no se
+  vea vacío la primera vez que un administrador entra a probarlo.
+
+**En palabras de negocio**: apenas se publica la aplicación, cualquier persona del negocio puede entrar,
+iniciar sesión con un usuario de ejemplo y probar los 6 módulos de punta a punta sin tener que cargar
+manualmente centros de trabajo, empleados o turnos antes de empezar.
 
 ## Technical Context
 
-**Language/Version**: C# / .NET 10 (LTS) — consistente con la versión de plataforma ya elegida en
-`docs/architecture/c4-containers.md`; lo que cambia es que hay **un** proyecto ASP.NET Core, no nueve.
+**Language/Version**: C# / .NET 10 (LTS).
 
 **Primary Dependencies**: ASP.NET Core 10 (MVC + Razor Views), Entity Framework Core 10 (SQLite
-provider), ASP.NET Core Identity (autenticación y roles del portal), Bootstrap 5 vía CDN (responsivo,
-sin paso de compilación de frontend). Sin Redis, sin API Gateway, sin SignalR, sin Kubernetes, sin
-Hangfire/Quartz (el `BackgroundService` incluido en ASP.NET Core basta para la exportación programada).
+provider), ASP.NET Core Identity (2 roles: Empleado, Administrador), Bootstrap 5 vía CDN (responsivo,
+sin paso de build de frontend). Sin Redis, sin API Gateway, sin SignalR, sin motor de trabajos en
+segundo plano (no hay exportación programada en v1.0).
 
-**Storage**: SQLite (archivo único `timeclock.db`). No requiere un servidor de base de datos separado
-ni credenciales de infraestructura adicionales — se puede desplegar junto con la aplicación en un único
-contenedor/instancia. EF Core aísla el acceso a datos, por lo que migrar a PostgreSQL en una fase
-posterior (si el volumen de datos lo justifica) es un cambio de proveedor, no un rediseño.
+**Storage**: SQLite (archivo único `timeclock.db`), sembrado con datos mock al primer arranque.
 
-**Testing**: xUnit + `Microsoft.AspNetCore.Mvc.Testing` (`WebApplicationFactory`) para pruebas de
-integración de extremo a extremo contra una base SQLite temporal; pruebas unitarias de las reglas de
-negocio (cálculo de horas extra, tolerancia, saldo de vacaciones) aisladas del framework web.
+**Testing**: xUnit + `Microsoft.AspNetCore.Mvc.Testing` (`WebApplicationFactory`) para los 6 módulos de
+v1.0; pruebas unitarias de las reglas de negocio que sí aplican en v1.0 (validación de geofence,
+tolerancia de turno para el indicador puntual/tardío, unicidad de número de empleado y PIN).
 
-**Target Platform**: Aplicación web ASP.NET Core multiplataforma, desplegable como un único contenedor
-en cualquier PaaS (Azure App Service, Railway, Fly.io, etc.). Interfaz responsiva (Bootstrap) para
-navegador de escritorio y móvil — no hay app móvil nativa en v1.
+**Target Platform**: Aplicación web ASP.NET Core, un solo contenedor, desplegable en cualquier PaaS.
+Interfaz responsiva (Bootstrap) para escritorio y móvil — sin app nativa, **sin modo offline** en v1.0
+(requiere conexión a internet para marcar).
 
-**Project Type**: Web — proyecto único (backend + frontend server-rendered en el mismo proceso), Opción
-1 de la plantilla ("Single project"), no la opción de frontend/backend separados ni la de móvil+API.
+**Project Type**: Web — proyecto único (Opción 1 de la plantilla).
 
-**Performance Goals**: Los de `spec.md` (SC-001 a SC-010): marcaje en <15s, presencia visible en <10s,
-recálculo de periodo en <5min, hasta 500 empleados activos sin degradar esos tiempos.
+**Performance Goals**: SC-001 (marcaje <15s), SC-002 (marcas fuera de geofence excluidas), SC-010 (hasta
+500 empleados). Los demás Success Criteria de `spec.md` (SC-003 a SC-009) corresponden a módulos
+diferidos a v1.1 y no aplican a esta entrega.
 
-**Constraints**: Un solo proceso desplegable (sin orquestación de múltiples servicios); sin conexión en
-vivo a un ERP/HRIS o proveedor biométrico real (contrato de archivo/interfaz solamente, según `spec.md`
-§Aclaraciones); todo el texto de la interfaz en español de México; ningún secreto o cadena de conexión en
-el código fuente (variables de entorno / `dotnet user-secrets` en desarrollo).
+**Constraints**: Un solo proceso desplegable; requiere conexión a internet (sin cola offline); sin
+conexión en vivo a ERP/HRIS/proveedor biométrico (ninguno de los dos aplica a los 6 módulos de v1.0);
+interfaz en español de México; sin secretos en código fuente.
 
-**Scale/Scope**: Hasta 500 empleados activos (SC-010); 7 historias de usuario; 47 requisitos
-funcionales; una sola entidad legal (México).
+**Scale/Scope**: Hasta 500 empleados activos; 6 módulos; una sola entidad legal (México).
 
 ## Constitution Check
 
@@ -93,13 +173,13 @@ funcionales; una sola entidad legal (México).
 
 | Principio | Evaluación |
 |---|---|
-| I. Simplicidad Ante Todo | ✅ PASA. Un solo proyecto ASP.NET Core, una sola base de datos SQLite, sin colas/cache/gateway. Ver "Decisión arquitectónica principal". |
-| II. Idioma y Mercado | ✅ PASA. Toda la interfaz, mensajes y reportes en español de México; montos en MXN (heredado de `spec.md`). |
-| III. Cero Alcance Fantasma | ✅ PASA. El plan solo cubre los 47 FR de `spec.md`; el reconocimiento facial real y la conexión en vivo a ERP/HRIS quedan explícitamente fuera (mismo alcance que la spec), no se anticipa infraestructura para ellos más allá de un punto de extensión (FR-007). |
-| IV. Verificable por una Persona No Técnica | ✅ PASA. Toda regla de negocio se valida desde la interfaz (formularios, paneles, reportes descargables); las pruebas automatizadas no sustituyen la validación manual descrita en `quickstart.md`. |
-| V. Datos del Usuario: Mínimos y Sin Secretos | ✅ PASA. PIN de marcaje y contraseña de portal se guardan con hash (ASP.NET Core Identity `PasswordHasher`), nunca en texto plano ni en código; cadenas de conexión y claves vía variables de entorno. |
+| I. Simplicidad Ante Todo | ✅ PASA — y de forma más contundente que la revisión anterior: menos módulos, sin modo offline, sin motor de trabajos en segundo plano, solo 2 roles. |
+| II. Idioma y Mercado | ✅ PASA. Interfaz en español de México, MXN donde aplique. |
+| III. Cero Alcance Fantasma | ✅ PASA. Cada módulo de v1.0 mapea a requisitos ya existentes en `spec.md` (tabla de alcance arriba); nada se construye que no esté ya en la spec. Lo diferido se documenta explícitamente, no se descarta. |
+| IV. Verificable por una Persona No Técnica | ✅ PASA. Cada uno de los 6 módulos tiene un flujo de prueba manual en `quickstart.md`, verificable desde la interfaz. |
+| V. Datos del Usuario: Mínimos y Sin Secretos | ✅ PASA. PIN y contraseña de portal con hash; sin secretos en código; los datos mock son ficticios, no datos reales de empleados. |
 
-**Resultado**: Sin violaciones. No se requiere la tabla de Complexity Tracking.
+**Resultado**: Sin violaciones. No se requiere tabla de Complexity Tracking.
 
 ## Project Structure
 
@@ -109,9 +189,9 @@ funcionales; una sola entidad legal (México).
 specs/001-timeclock-spec-v1/
 ├── plan.md              # Este archivo
 ├── research.md          # Fase 0 — decisiones técnicas y su razón de negocio
-├── data-model.md         # Fase 1 — entidades, campos, relaciones, reglas
-├── quickstart.md         # Fase 1 — cómo levantar y validar la app manualmente
-├── contracts/            # Fase 1 — contratos de exportación/importación y endpoints
+├── data-model.md         # Fase 1 — entidades de v1.0 + referencia a las diferidas
+├── quickstart.md         # Fase 1 — validación manual módulo por módulo
+├── contracts/            # Fase 1 — mapa de acciones (export-import.md queda diferido)
 └── tasks.md              # Fase 2 (/speckit-tasks) — no se crea en este comando
 ```
 
@@ -119,33 +199,33 @@ specs/001-timeclock-spec-v1/
 
 ```text
 src/
-└── TimeClockSystem.Web/              # Único proyecto desplegable (ASP.NET Core 10)
+└── TimeClockSystem.Web/
     ├── Areas/
-    │   ├── Marcaje/                   # US1 — registrar marca, geofence, PIN, offline
-    │   ├── Turnos/                    # US2 — catálogo de turnos, asignación masiva, pre-nómina
-    │   ├── Solicitudes/               # US3 — permisos, vacaciones, incapacidades, aprobación
-    │   ├── Supervisor/                # US4 — panel de presencia, reasignación de cobertura
-    │   ├── Empleado/                  # US5 — autoservicio (historial, saldo, notificaciones)
-    │   ├── Integraciones/             # US6 — exportación a nómina, importación de altas/bajas
-    │   └── Reportes/                  # US7 — reportes, KPIs, bitácora de auditoría
-    ├── Domain/                        # Entidades y reglas de negocio (sin dependencias de EF Core)
+    │   ├── CentrosTrabajo/            # Módulo 1
+    │   ├── Empleados/                 # Módulo 2 (incluye credenciales de marcaje)
+    │   ├── Turnos/                    # Módulo 3
+    │   ├── DiasFestivos/              # Módulo 4
+    │   ├── Marcaje/                   # Módulo 5
+    │   └── ConsultaAsistencias/       # Módulo 6
+    ├── Domain/
     ├── Infrastructure/
     │   ├── Data/                      # DbContext, migraciones, DbSeeder (datos mock)
-    │   └── Identity/                  # ASP.NET Core Identity, roles, hashing de PIN
-    ├── wwwroot/                       # CSS (Bootstrap vía CDN + overrides), JS de marcaje offline
+    │   └── Identity/                  # ASP.NET Core Identity, 2 roles, hashing de PIN
+    ├── wwwroot/
     └── Program.cs
 
 tests/
 └── TimeClockSystem.Tests/
-    ├── Unit/                          # Reglas de negocio: tolerancia, horas extra, saldo vacaciones
-    └── Integration/                   # Flujos de extremo a extremo vía WebApplicationFactory
+    ├── Unit/
+    └── Integration/
 ```
 
-**Structure Decision**: Un único proyecto web (`src/TimeClockSystem.Web`) organizado en carpetas por
-área funcional (una por historia de usuario), no en microservicios separados. Esto es intencional: cada
-área puede evolucionar a un proyecto/servicio independiente en el futuro si la evidencia de escala lo
-justifica (la separación por carpetas ya refleja los mismos límites de dominio que los bounded contexts
-de `docs/architecture/domain-model.md`), pero en v1 comparten proceso, despliegue y base de datos.
+Las carpetas `Incidencias/`, `Supervisor/`, `Integraciones/` y `Reportes/` (de la versión anterior de
+este plan) se posponen a v1.1; no se crean todavía para no dejar código o pantallas a medio terminar.
+
+**Structure Decision**: Un único proyecto web, organizado por los 6 módulos de v1.0. Cada `Area` puede
+extenderse en v1.1 con las funciones diferidas (p. ej. `Marcaje` gana soporte offline; `Turnos` gana el
+motor de pre-nómina) sin necesitar una reestructuración previa.
 
 ## Complexity Tracking
 

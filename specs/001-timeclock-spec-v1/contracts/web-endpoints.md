@@ -1,34 +1,23 @@
-# Mapa de acciones de la aplicación (interno)
+# Mapa de acciones de la aplicación — v1.0 (6 módulos)
 
-Resumen de las acciones principales por área funcional, para guiar `/speckit-tasks`. No es un contrato
-externo (la aplicación no expone una API pública para terceros en v1, salvo el archivo de
-exportación/importación descrito en `export-import.md`); es la referencia de qué páginas/acciones debe
-tener el único proyecto ASP.NET Core.
+Resumen de las acciones principales por módulo, en el mismo orden de construcción de `plan.md`, para
+guiar `/speckit-tasks`. No hay API pública para terceros en v1.0 (la Exportación/Importación está
+diferida — ver `export-import.md`).
 
-| Área (carpeta) | Acción | Requisitos cubiertos |
-|---|---|---|
-| Marcaje | Registrar marca (entrada/salida/receso) — web, o por número de empleado + PIN | FR-001 a FR-010 |
-| Marcaje | Asignar/restablecer PIN de un empleado (RRHH/Admin) | FR-004 |
-| Turnos | CRUD de catálogo de turnos | FR-011, FR-015 |
-| Turnos | Asignación individual y masiva de turnos/calendarios | FR-013, FR-014 |
-| Turnos | Configurar factores de pago y rangos horarios (RRHH) | FR-018 |
-| Turnos | Ver/recalcular consolidado de un periodo | FR-016, FR-019 |
-| Solicitudes | Crear solicitud (vacaciones/permiso/incapacidad/compensatorio) | FR-020 a FR-022 |
-| Solicitudes | Aprobar/rechazar (supervisor, RRHH) | FR-023, FR-025 |
-| Solicitudes | Escalamiento automático por vencimiento de plazo | FR-024 |
-| Supervisor | Panel de presencia del equipo (polling) | FR-031, FR-032 |
-| Supervisor | Aprobar/rechazar solicitudes del equipo | FR-033 |
-| Supervisor | Reasignar cobertura de turno | FR-034, FR-035 |
-| Empleado | Historial de marcas, incidencias, saldo de vacaciones | FR-027, FR-028 |
-| Empleado | Marca omitida → iniciar corrección | FR-029 |
-| Empleado | Notificaciones (marcas omitidas, resolución de solicitudes) | FR-030 |
-| Integraciones | Disparar/consultar exportación a nómina | FR-036, FR-037, FR-039 |
-| Integraciones | Subir archivo de altas/bajas | FR-038, FR-039 |
-| Reportes | Reportes operativos (asistencia, ausentismo, horas extra) + KPIs | FR-040, FR-041 |
-| Reportes | Exportar reporte (PDF/Excel/CSV) | FR-042 |
-| Reportes | Consultar y filtrar bitácora de auditoría | FR-044 a FR-047 |
-| Administración | Gestión de roles y permisos | FR-043 |
-| Administración | Consentimiento de geolocalización/biometría | FR-046 |
+| # | Módulo (carpeta) | Acción | Requisitos cubiertos | Rol |
+|---|---|---|---|---|
+| 1 | CentrosTrabajo | CRUD de centro de trabajo (nombre, coordenadas, radio) | Soporta FR-006 | Administrador |
+| 2 | Empleados | CRUD de empleado (número, nombre, centro de trabajo, estado) | Entidad Empleado | Administrador |
+| 2 | Empleados | Asignar/restablecer PIN de marcaje de un empleado | FR-004 | Administrador |
+| 3 | Turnos | CRUD de catálogo de turnos (horario, receso, tolerancia) | FR-011, FR-015 | Administrador |
+| 3 | Turnos | Asignación individual y masiva de turnos a empleados | FR-013, FR-014 | Administrador |
+| 4 | DiasFestivos | CRUD de calendario de festivos | Soporta clasificación informativa en módulo 6 | Administrador |
+| 5 | Marcaje | Registrar marca (entrada/salida/receso) desde el portal, con geolocalización | FR-001, FR-005, FR-006, FR-010 | Empleado |
+| 5 | Marcaje | Registrar marca por número de empleado + PIN (modo kiosco) | FR-002, FR-003 | Empleado (sin sesión de portal) |
+| 6 | ConsultaAsistencias | Filtrar/consultar marcas por empleado, fecha o centro de trabajo, con indicador puntual/tardío y día festivo | Versión acotada de US5/US7 | Administrador |
 
-Cada fila de esta tabla se convierte en una o más tareas concretas (controlador/vista/prueba) en
-`tasks.md` cuando se ejecute `/speckit-tasks`.
+## Fuera de v1.0
+
+Ver `plan.md` §"Diferido explícitamente a v1.1" para la lista completa (Incidencias, Exportación/
+Importación, offline, motor de pre-nómina, panel de presencia en tiempo real, reportes/KPIs exportables,
+bitácora de auditoría, roles adicionales).
