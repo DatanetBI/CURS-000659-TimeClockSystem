@@ -1,0 +1,31 @@
+sequenceDiagram
+    autonumber
+    actor Empleado
+    participant App as App Movil (modo offline)
+    participant Local as Almacenamiento Local
+    participant API as TCS API Gateway
+    participant Motor as Motor de Reglas
+
+    Empleado->>App: Marca entrada (sin conectividad)
+    App->>Local: Guarda marca con timestamp local y estado "Pendiente"
+    Local-->>App: Confirmacion de guardado local
+    App-->>Empleado: Marca guardada localmente
+
+    Note over App,API: Dispositivo recupera conectividad
+
+    App->>Local: Obtiene marcas pendientes
+    Local-->>App: Lista de marcas pendientes (orden cronologico)
+    loop Para cada marca pendiente
+        App->>API: Envia marca (empleado, timestamp original, GPS)
+        API->>Motor: Valida geofencing, turno y duplicados
+        alt Marca duplicada o invalida
+            Motor-->>API: Rechazo con motivo
+            API-->>App: Estado "Rechazada"
+        else Marca valida
+            Motor-->>API: Marca aceptada
+            API->>API: Persiste marca definitiva
+            API-->>App: Estado "Sincronizada"
+        end
+        App->>Local: Actualiza estado de la marca
+    end
+    App-->>Empleado: Notifica resultado de sincronizacion

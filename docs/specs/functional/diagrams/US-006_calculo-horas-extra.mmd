@@ -1,0 +1,20 @@
+sequenceDiagram
+    autonumber
+    participant Sched as Modulo de Horarios y Turnos
+    participant Clock as Modulo de Marcaje
+    participant Motor as Motor de Calculo de Pre-Nomina
+    participant Reglas as Configuracion de Reglas Legales
+    participant PN as Repositorio de Pre-Nomina
+    participant Nomina as Encargado de Nomina
+
+    Nomina->>Motor: Solicita procesar periodo de pre-nomina
+    Motor->>Sched: Obtiene turno asignado por empleado y fecha
+    Sched-->>Motor: Turno asignado (horario, tolerancia)
+    Motor->>Clock: Obtiene marcas registradas del periodo
+    Clock-->>Motor: Marcas de entrada/salida/receso
+    Motor->>Reglas: Obtiene factores legales (extra, recargo, festivos) por entidad legal
+    Reglas-->>Motor: Parametros de calculo vigentes
+    Motor->>Motor: Calcula horas trabajadas, atrasos, ausencias
+    Motor->>Motor: Clasifica horas extra y recargos (diurno/nocturno/festivo/dominical)
+    Motor->>PN: Persiste consolidado de pre-nomina del periodo
+    PN-->>Nomina: Consolidado disponible para revision

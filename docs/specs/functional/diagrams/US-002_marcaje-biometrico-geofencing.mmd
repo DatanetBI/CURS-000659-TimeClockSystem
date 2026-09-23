@@ -1,0 +1,31 @@
+sequenceDiagram
+    autonumber
+    actor Empleado
+    participant App as App Móvil
+    participant GPS as Servicio de Geolocalización
+    participant Bio as Motor Biométrico (Liveness + Facial)
+    participant API as TCS API Gateway
+    participant Sec as Módulo de Seguridad y Auditoría
+
+    Empleado->>App: Solicita marcar entrada
+    App->>GPS: Obtiene coordenadas actuales
+    GPS-->>App: Coordenadas GPS
+    App->>Bio: Captura video/imagen facial
+    Bio->>Bio: Ejecuta prueba de vida (liveness)
+    alt Liveness fallido
+        Bio-->>App: Rechazo - posible suplantacion
+        App-->>Empleado: Marca rechazada
+        App->>Sec: Reporta intento sospechoso
+    else Liveness exitoso
+        Bio-->>App: Identidad confirmada + score
+        App->>API: Envia marca (empleado, hora, GPS, score)
+        API->>API: Valida geofencing contra perimetro autorizado
+        alt Fuera de perimetro
+            API-->>App: Marca rechazada - fuera de perimetro
+            API->>Sec: Registra evento de seguridad
+        else Dentro de perimetro
+            API->>API: Persiste marca valida
+            API-->>App: Confirmacion de marcaje
+            App-->>Empleado: Marca registrada con exito
+        end
+    end

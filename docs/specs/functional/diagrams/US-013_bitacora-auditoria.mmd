@@ -1,0 +1,20 @@
+sequenceDiagram
+    autonumber
+    actor RRHH as Analista de RRHH
+    participant App as Modulo funcional (Marcas/Permisos/Horarios)
+    participant Audit as Servicio de Bitacora de Auditoria
+    participant Store as Almacen Append-Only
+    actor Auditor as Oficial de Cumplimiento
+
+    RRHH->>App: Corrige manualmente un registro (ej. hora de marca)
+    App->>App: Aplica la correccion en la entidad correspondiente
+    App->>Audit: Envia evento de cambio (usuario, entidad, valor previo, valor nuevo, timestamp)
+    Audit->>Store: Inserta registro inalterable (append-only)
+    Store-->>Audit: Confirmacion de insercion
+    Audit-->>App: Evento de auditoria registrado
+    App-->>RRHH: Confirma correccion aplicada
+
+    Auditor->>Audit: Consulta historial de cambios por entidad/periodo
+    Audit->>Store: Recupera registros correspondientes
+    Store-->>Audit: Registros de auditoria (solo lectura)
+    Audit-->>Auditor: Linea de tiempo de cambios

@@ -1,0 +1,39 @@
+sequenceDiagram
+    autonumber
+    actor Empleado
+    participant ESS as Portal ESS
+    participant WF as Motor de Workflow de Aprobaciones
+    actor Supervisor
+    actor RRHH as Analista de RRHH
+    participant PN as Motor de Pre-Nomina
+    participant Audit as Bitacora de Auditoria
+
+    Empleado->>ESS: Envia solicitud de permiso/incidencia
+    ESS->>WF: Crea solicitud en estado "Pendiente"
+    WF->>Audit: Registra creacion de solicitud
+    WF-->>Supervisor: Notifica solicitud pendiente
+
+    alt Supervisor aprueba
+        Supervisor->>WF: Aprueba solicitud
+        WF->>Audit: Registra aprobacion (usuario, fecha, hora)
+        alt Requiere segundo nivel (RRHH)
+            WF-->>RRHH: Notifica solicitud pendiente de RRHH
+            alt RRHH aprueba
+                RRHH->>WF: Aprueba solicitud
+                WF->>Audit: Registra aprobacion final
+                WF->>PN: Marca incidencia como aprobada para calculo
+                WF-->>Empleado: Notifica aprobacion final
+            else RRHH rechaza
+                RRHH->>WF: Rechaza solicitud con motivo
+                WF->>Audit: Registra rechazo
+                WF-->>Empleado: Notifica rechazo con motivo
+            end
+        else Aprobacion de un solo nivel
+            WF->>PN: Marca incidencia como aprobada para calculo
+            WF-->>Empleado: Notifica aprobacion
+        end
+    else Supervisor rechaza
+        Supervisor->>WF: Rechaza solicitud con motivo
+        WF->>Audit: Registra rechazo
+        WF-->>Empleado: Notifica rechazo con motivo
+    end

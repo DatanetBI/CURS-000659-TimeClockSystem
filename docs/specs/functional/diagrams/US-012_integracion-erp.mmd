@@ -1,0 +1,24 @@
+sequenceDiagram
+    autonumber
+    participant PN as Repositorio de Pre-Nomina
+    participant Sched as Programador de Tareas
+    participant Conn as Conector de Integracion
+    participant ERP as Sistema ERP/Nomina
+    participant TI as Especialista de TI
+
+    Sched->>Conn: Dispara proceso de exportacion programado
+    Conn->>PN: Solicita consolidado del periodo cerrado
+    PN-->>Conn: Consolidado de horas e incidencias
+    Conn->>Conn: Transforma datos al formato del ERP destino
+    Conn->>ERP: Envia consolidado (API REST o archivo SFTP)
+    alt ERP responde exitosamente
+        ERP-->>Conn: Confirmacion de recepcion (codigo exito)
+        Conn->>PN: Marca lote como "Exportado"
+    else ERP no responde o rechaza
+        ERP-->>Conn: Error o timeout
+        Conn->>Conn: Aplica politica de reintentos
+        alt Reintentos agotados
+            Conn->>TI: Notifica fallo de exportacion
+            Conn->>PN: Marca lote como "Fallido"
+        end
+    end
