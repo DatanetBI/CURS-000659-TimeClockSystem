@@ -16,6 +16,7 @@
 - Q: ¿Qué debe hacer el Frontend cuando una llamada al Backend para registrar una marca de asistencia falla por timeout o pérdida de red? → A: Fallar sin reintento automático — un único intento; si falla, se muestra el error de inmediato y el Empleado debe volver a marcar manualmente, para evitar marcas duplicadas por reintentos sobre una operación no garantizada como idempotente.
 - Q: ¿El Backend debe registrar un log de auditoría para eventos sensibles (inicios de sesión, intentos de marcaje rechazados, accesos denegados por rol)? → A: Sí, registrar auditoría de eventos sensibles — el Backend guarda quién, cuándo y qué se intentó en eventos de login, marcaje rechazado y accesos denegados, dando trazabilidad para disputas laborales.
 - Q: ¿Qué tan rápido debe percibirse una acción típica del usuario (registrar una marca, guardar un cambio de empleado/turno) ahora que hay una llamada de red adicional entre el Frontend y el Backend? → A: Menos de 5 segundos en el 95% de los casos.
+- Q: Para el log de auditoría (SC-006), ¿se debe agregar una pantalla nueva en el Frontend para que un Administrador lo consulte? → A: Sí, agregar una pantalla de solo lectura para Administrador (filtrable por fecha/usuario), para cumplir con el principio de verificabilidad no técnica.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -32,6 +33,7 @@ Como Administrador o Empleado que ya usa TimeClockSystem, quiero seguir marcando
 1. **Given** un Administrador ha iniciado sesión, **When** crea, edita o elimina un Centro de Trabajo, un Turno o un Empleado, **Then** el cambio se guarda y se refleja en pantalla exactamente igual que antes de la separación.
 2. **Given** un Empleado ha iniciado sesión, **When** registra entrada, salida, inicio de receso o fin de receso, **Then** la marca se registra aplicando las mismas validaciones de puntualidad, geocerca y consentimiento que existían antes.
 3. **Given** cualquier usuario autenticado, **When** el Backend no está disponible momentáneamente, **Then** el Frontend muestra un mensaje de error claro en vez de fallar de forma silenciosa o inesperada.
+4. **Given** un Administrador ha iniciado sesión, **When** consulta la pantalla de auditoría filtrando por fecha o por usuario, **Then** ve los inicios de sesión, marcajes rechazados y accesos denegados registrados, sin necesidad de herramientas técnicas.
 
 ---
 
@@ -88,6 +90,7 @@ Como desarrollador o responsable de QA, quiero poder explorar y probar todas las
 - **FR-009**: El sistema MUST mostrar al usuario final un mensaje de error claro y no técnico cada vez que el Backend no esté disponible o devuelva un error, sin exponer detalles internos.
 - **FR-010**: El sistema MUST conservar el acceso a todos los datos históricos existentes (empleados, marcas, turnos, asignaciones, días festivos, credenciales) después de la separación, sin pérdida de información.
 - **FR-011**: El Backend MUST registrar un log de auditoría de eventos sensibles (inicios de sesión, intentos de marcaje rechazados, accesos denegados por rol), incluyendo quién, cuándo y qué se intentó, para dar trazabilidad ante disputas laborales.
+- **FR-011a**: El Frontend MUST ofrecer una pantalla nueva, de solo lectura y accesible únicamente para el rol Administrador, que permita consultar el log de auditoría filtrando por fecha y por usuario, sin necesidad de herramientas técnicas.
 - **FR-012**: El Frontend MUST intentar cada llamada de registro de marca al Backend una única vez (sin reintento automático) y, si falla por timeout o pérdida de red, MUST informar de inmediato al Empleado que la marca no se registró.
 
 ### Key Entities *(include if feature involves data)*
@@ -100,6 +103,7 @@ Como desarrollador o responsable de QA, quiero poder explorar y probar todas las
 - **Marca**: evento de asistencia registrado (entrada, salida, inicio/fin de receso) asociado a un Empleado.
 - **CredencialDeMarcaje**: credencial (PIN u otro medio) usada para autenticar una marca.
 - **Usuario/Rol**: identidad (Administrador o Empleado) usada para acceder al sistema, que ahora debe viajar entre Frontend y Backend como un token.
+- **RegistroAuditoria**: evento sensible registrado (inicio de sesión, marcaje rechazado, acceso denegado por rol) con quién, cuándo y qué se intentó; consultable por un Administrador.
 
 ## Success Criteria *(mandatory)*
 
