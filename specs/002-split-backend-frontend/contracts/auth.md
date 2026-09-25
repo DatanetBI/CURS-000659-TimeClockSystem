@@ -13,6 +13,12 @@ Autentica a un usuario existente y emite el token que el Frontend usará en cada
   (`InicioSesionFallido`) con el usuario intentado (FR-011).
 - **Notas**: el token tiene expiración fija (FR-002); no existe endpoint de refresh. Un
   `InicioSesionExitoso` también se registra en auditoría.
+- **Claims del token**: además del rol, el token MUST incluir un claim `empleadoId` cuando el
+  `ApplicationUser` autenticado está vinculado a un Empleado (equivalente al
+  `ApplicationUser.EmpleadoId` actual). Los endpoints que resuelven "el empleado de la sesión"
+  (`POST /api/marcaje` canal `PortalWeb`, `GET /api/consulta-asistencias` para rol Empleado) MUST
+  leer este claim en vez de volver a consultar por nombre de usuario (ver data-model.md —
+  Usuario/Rol).
 
 ## POST /api/auth/logout
 

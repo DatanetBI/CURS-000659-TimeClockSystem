@@ -72,7 +72,7 @@ Como desarrollador o responsable de QA, quiero poder explorar y probar todas las
 - ¿Qué sucede cuando el Frontend recibe un token de autenticación vencido o inválido desde el Backend? Debe forzar un nuevo inicio de sesión limpio sin exponer detalles técnicos del error.
 - ¿Cómo se comporta el sistema si el Frontend no puede alcanzar al Backend justo durante el intento de marcaje de un Empleado? El Frontend MUST hacer un único intento (sin reintento automático) y, si falla por timeout o pérdida de red, MUST informar de inmediato al Empleado que la marca no se registró, para que la repita manualmente y evitar registros duplicados.
 - ¿Qué ocurre con los datos históricos existentes (empleados, marcas, turnos ya almacenados) durante la migración? Deben seguir siendo accesibles en su totalidad tras la separación.
-- ¿Qué sucede si los permisos de un usuario cambian durante una sesión activa (por ejemplo, un Administrador es reasignado a Empleado)? El Backend debe validar el rol vigente en cada operación en lugar de confiar indefinidamente en un dato de rol obsoleto.
+- ¿Qué sucede si los permisos de un usuario cambian durante una sesión activa (por ejemplo, un Administrador es reasignado a Empleado)? Dado que el token tiene expiración fija sin renovación silenciosa (FR-002), el cambio de rol NO se refleja de inmediato: el usuario conserva el rol que tenía al iniciar sesión hasta que su token expire y deba volver a autenticarse. Este retraso máximo (igual a la duración de expiración del token) es el comportamiento aceptado; el Backend MUST NOT prolongarlo confiando en un rol obsoleto más allá de la expiración del token.
 
 ## Requirements *(mandatory)*
 
@@ -110,7 +110,7 @@ Como desarrollador o responsable de QA, quiero poder explorar y probar todas las
 ### Measurable Outcomes
 
 - **SC-001**: El 100% de los flujos de trabajo actuales (en todos los módulos existentes) se completan exitosamente tras la separación, con el mismo resultado observado por el usuario que antes.
-- **SC-002**: El Backend puede actualizarse y redesplegarse sin requerir ningún redespliegue del Frontend (y viceversa) en al menos el 95% de los cambios rutinarios.
+- **SC-002**: El Backend puede actualizarse y redesplegarse sin requerir ninguna recompilación ni reinicio del Frontend (y viceversa), siempre que el cambio no modifique el contrato HTTP existente entre ambos.
 - **SC-003**: Una persona de desarrollo o QA puede completar un flujo de negocio de extremo a extremo (crear empleado → asignar turno → registrar marca → consultar asistencia) usando únicamente la documentación del Backend, sin abrir el Frontend, en menos de 15 minutos.
 - **SC-004**: Cuando el Backend no está disponible, el 100% de las acciones afectadas en el Frontend muestran un mensaje de error comprensible en vez de una falla no controlada.
 - **SC-005**: No se observa ninguna pérdida de registros históricos (empleados, marcas, turnos, asignaciones, días festivos) después de migrar a la arquitectura separada.

@@ -120,5 +120,15 @@ filtrable por rango de fecha y por usuario (FR-011a).
 ## Usuario/Rol (Identity)
 
 Sin cambios de forma respecto a hoy: `ApplicationUser` (Identity) con roles `Administrador` y
-`Empleado` (`Roles.Todos`). Se relocaliza a `TimeClockSystem.Infrastructure.Identity`; el Frontend ya
-no tiene su propio almacén de Identity (ver research.md #2).
+`Empleado` (`Roles.Todos`), y su vínculo existente `ApplicationUser.EmpleadoId` hacia `Empleado`
+(usado hoy por `MarcajeController.ObtenerEmpleadoActualAsync`). Se relocaliza a
+`TimeClockSystem.Infrastructure.Identity`; el Frontend ya no tiene su propio almacén de Identity
+(ver research.md #2).
+
+**Propagación de `EmpleadoId` vía token**: dado que el Backend ya no comparte proceso ni base de
+datos de Identity con el Frontend, el token emitido por `POST /api/auth/login` MUST incluir un claim
+`empleadoId` (cuando el `ApplicationUser` autenticado está vinculado a un Empleado). Los endpoints
+que hoy resuelven "el empleado de la sesión actual" (`POST /api/marcaje` canal `PortalWeb`,
+`GET /api/consulta-asistencias` para el rol Empleado) MUST leer ese claim directamente del token en
+vez de volver a consultar por nombre de usuario, preservando el mismo comportamiento que
+`ObtenerEmpleadoActualAsync` tiene hoy (ver contracts/auth.md).

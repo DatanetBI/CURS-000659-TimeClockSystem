@@ -43,6 +43,14 @@ introducir un gateway/BFF adicional (ya descartado en la spec, FR-008).
 - JWT almacenado en `localStorage`/`sessionStorage` del navegador: descartado porque expone el
   token a JavaScript (mayor superficie de ataque XSS) y contradice la aclaración registrada.
 
+**Nota (remediación I1/U1, `Specification-Analysis-Report-BackEnd.md`)**: dado que el rol viaja como
+claim dentro del JWT y este no se renueva silenciosamente, un cambio de rol a mitad de sesión solo
+se refleja hasta que el token expira y el usuario vuelve a iniciar sesión — comportamiento aceptado
+y documentado en el Edge Case correspondiente de `spec.md`. Por la misma razón, el token también
+MUST incluir un claim `empleadoId` (cuando el `ApplicationUser` está vinculado a un Empleado), para
+que `RegistrarMarcaUseCase` y `ConsultarAsistenciasUseCase` resuelvan "el empleado de la sesión" sin
+volver a consultar por nombre de usuario (ver data-model.md — Usuario/Rol, contracts/auth.md).
+
 ## 3. Documentación de la API (Swagger/OpenAPI)
 
 **Decision**: `Swashbuckle.AspNetCore` en `TimeClockSystem.Api`, expuesto en `/swagger` solo en

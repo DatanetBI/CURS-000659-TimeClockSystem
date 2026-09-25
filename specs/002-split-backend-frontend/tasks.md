@@ -63,7 +63,7 @@ historia de usuario puede probarse sin esto, ya que las 3 dependen de que la API
 ### Application
 
 - [ ] T012 Definir las interfaces de repositorio/servicio (`IEmpleadoRepository`, `ICentroTrabajoRepository`, `ITurnoRepository`, `IAsignacionTurnoRepository`, `IDiaFestivoRepository`, `IMarcaRepository`, `ICredencialRepository`, `ITokenService`, `IAuditLogService`) en `src/TimeClockSystem.Application/Abstractions/`
-- [ ] T013 Implementar `AutenticarUseCase` en `src/TimeClockSystem.Application/Auth/AutenticarUseCase.cs` (contracts/auth.md; registra `InicioSesionExitoso`/`InicioSesionFallido` vía `IAuditLogService`)
+- [ ] T013 Implementar `AutenticarUseCase` en `src/TimeClockSystem.Application/Auth/AutenticarUseCase.cs` (contracts/auth.md; registra `InicioSesionExitoso`/`InicioSesionFallido` vía `IAuditLogService`; incluye el claim `empleadoId` en el token cuando el `ApplicationUser` está vinculado a un Empleado — data-model.md, Usuario/Rol)
 - [ ] T014 Adaptar `MarcajeService` existente a `RegistrarMarcaUseCase` en `src/TimeClockSystem.Application/Marcaje/RegistrarMarcaUseCase.cs`, conservando sus reglas (geofence, consentimiento, entrada duplicada) y registrando `MarcajeRechazado` en cada rechazo (contracts/marcaje.md, FR-011)
 - [ ] T015 [P] Implementar los casos de uso de Empleados (listar, obtener, crear, actualizar, credencial) en `src/TimeClockSystem.Application/Empleados/` (contracts/empleados.md)
 - [ ] T016 [P] Implementar los casos de uso CRUD de CentrosTrabajo en `src/TimeClockSystem.Application/CentrosTrabajo/` (contracts/centros-trabajo.md)
@@ -90,8 +90,8 @@ historia de usuario puede probarse sin esto, ya que las 3 dependen de que la API
 - [ ] T031 [P] Implementar `CentrosTrabajoController` en `src/TimeClockSystem.Api/Controllers/CentrosTrabajoController.cs` (contracts/centros-trabajo.md)
 - [ ] T032 [P] Implementar `TurnosController` y `AsignacionesTurnoController` en `src/TimeClockSystem.Api/Controllers/` (contracts/turnos-y-asignaciones.md)
 - [ ] T033 [P] Implementar `DiasFestivosController` en `src/TimeClockSystem.Api/Controllers/DiasFestivosController.cs` (contracts/dias-festivos.md)
-- [ ] T034 [P] Implementar `MarcajeController` (`POST /api/marcaje`, `POST /api/marcaje/pin`) en `src/TimeClockSystem.Api/Controllers/MarcajeController.cs` (contracts/marcaje.md)
-- [ ] T035 [P] Implementar `ConsultaAsistenciasController` en `src/TimeClockSystem.Api/Controllers/ConsultaAsistenciasController.cs` (contracts/consulta-asistencias.md)
+- [ ] T034 [P] Implementar `MarcajeController` (`POST /api/marcaje`, `POST /api/marcaje/pin`) en `src/TimeClockSystem.Api/Controllers/MarcajeController.cs`; para el canal `PortalWeb` resuelve el Empleado leyendo el claim `empleadoId` del token, no por nombre de usuario (contracts/marcaje.md, contracts/auth.md)
+- [ ] T035 [P] Implementar `ConsultaAsistenciasController` en `src/TimeClockSystem.Api/Controllers/ConsultaAsistenciasController.cs`; para rol Empleado, resuelve y valida el `empleadoId` solicitado contra el claim `empleadoId` del token (contracts/consulta-asistencias.md, contracts/auth.md)
 - [ ] T036 [P] Implementar `AuditoriaController` (`GET /api/auditoria`, solo Administrador) en `src/TimeClockSystem.Api/Controllers/AuditoriaController.cs` (contracts/auditoria.md)
 - [ ] T037 Aplicar `[Authorize(Roles = ...)]` en cada controller según lo definido en `contracts/`, asegurando que el Backend valide los permisos de forma independiente del Frontend (FR-003)
 - [ ] T038 Configurar la clave de firma del token y la cadena de conexión vía `appsettings.Development.json` (fuera de control de versiones) y variables de entorno en producción, sin secretos en el código (Principio V) en `src/TimeClockSystem.Api/appsettings*.json`
@@ -175,6 +175,7 @@ completo sigue funcionando de extremo a extremo (quickstart.md sección 3).
 - [ ] T061 [P] Eliminar las carpetas `Domain/` e `Infrastructure/` ya no usadas de `src/TimeClockSystem.Web/` una vez confirmada la migración completa
 - [ ] T062 Ejecutar `quickstart.md` completo de punta a punta como pase de regresión final sobre las 3 historias de usuario
 - [ ] T063 [P] Revisar todos los `appsettings*.json` de ambos proyectos para confirmar que ningún secreto (clave del token, cadenas de conexión) quedó en texto plano (Principio V)
+- [ ] T064 Medir manualmente el tiempo de respuesta percibido al registrar una marca y al guardar un cambio de empleado/turno desde el navegador (herramientas de desarrollador, pestaña Network) y confirmar que se mantiene bajo 5 segundos (SC-007, quickstart.md sección 6)
 
 ---
 

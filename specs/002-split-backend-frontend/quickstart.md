@@ -62,3 +62,14 @@ dotnet run --project src/TimeClockSystem.Web
 2. Tras migrar `TimeClockSystem.Infrastructure` y aplicar solo la migración aditiva de auditoría,
    confirmar en el Frontend que todos los empleados, marcas, turnos, asignaciones y días festivos
    previos a la separación siguen visibles y consultables.
+
+## 6. Validar rendimiento percibido (SC-007)
+
+1. Con ambos proyectos corriendo, abrir las herramientas de desarrollador del navegador (pestaña
+   Network) antes de repetir estas acciones:
+   - Registrar una marca de entrada/salida (Marcaje).
+   - Guardar un cambio de un Empleado o de un Turno.
+2. Confirmar que cada acción se completa (respuesta HTTP recibida + pantalla actualizada) en menos
+   de 5 segundos, pese al salto de red adicional introducido por la separación.
+3. Repetir al menos 5 veces por acción; si alguna supera los 5 segundos de forma consistente,
+   investigar antes de dar por válido SC-007.
