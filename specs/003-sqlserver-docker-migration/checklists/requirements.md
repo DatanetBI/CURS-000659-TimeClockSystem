@@ -31,4 +31,5 @@
 
 ## Notes
 
-- Los 3 marcadores [NEEDS CLARIFICATION] originales (FR-012, FR-013, FR-014) fueron resueltos con el solicitante el 2026-09-24 y están documentados en la sección Clarifications del spec. La especificación está lista para `/speckit-clarify` (opcional) o `/speckit-plan`.
+- Los 3 marcadores [NEEDS CLARIFICATION] originales (FR-012, FR-013, FR-014) fueron resueltos con el solicitante el 2026-09-24 y están documentados en la sección Clarifications del spec.
+- Sesión de `/speckit-clarify` (2026-09-24): 3 preguntas adicionales resueltas (límite de espera del Backend a la base de datos, comportamiento ante fallo de migración, objetivo de rendimiento de 5s heredado de la funcionalidad 002). Todos los ítems del checklist ya pasaban antes de esta sesión y se mantienen en 16/16 después de integrar las respuestas. La especificación está lista para `/speckit-plan`.
