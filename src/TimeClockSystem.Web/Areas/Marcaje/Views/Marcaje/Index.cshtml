@@ -42,7 +42,7 @@
                     <td>@marca.Timestamp.ToLocalTime().ToString("HH:mm")</td>
                     <td>@marca.Tipo</td>
                     <td>
-                        @if (marca.Estado == TimeClockSystem.Web.Domain.EstadoMarca.Valida)
+                        @if (marca.Estado == TimeClockSystem.Web.ViewModels.EstadoMarca.Valida)
                         {
                             <span class="badge bg-success">Válida</span>
                         }

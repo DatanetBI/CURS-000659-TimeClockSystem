@@ -36,14 +36,14 @@ Arquitectura Web (frontend + backend), según `plan.md`:
 
 **Purpose**: Crear los proyectos nuevos y ajustar la solución antes de mover código.
 
-- [ ] T001 Agregar los 4 proyectos nuevos del Backend a `TimeClockSystem.slnx` con las referencias de dependencia Domain ← Application ← Infrastructure ← Api
-- [ ] T002 [P] Scaffold `src/TimeClockSystem.Domain/TimeClockSystem.Domain.csproj` (net10.0, class library, sin dependencias de paquete)
-- [ ] T003 [P] Scaffold `src/TimeClockSystem.Application/TimeClockSystem.Application.csproj` (net10.0, class library, referencia a Domain)
-- [ ] T004 [P] Scaffold `src/TimeClockSystem.Infrastructure/TimeClockSystem.Infrastructure.csproj` (net10.0, referencia a Application; agrega `Microsoft.EntityFrameworkCore.Sqlite`, `Microsoft.AspNetCore.Identity.EntityFrameworkCore`, `Microsoft.AspNetCore.Authentication.JwtBearer`)
-- [ ] T005 Scaffold `src/TimeClockSystem.Api/TimeClockSystem.Api.csproj` (`Microsoft.NET.Sdk.Web`, referencia a Application + Infrastructure; agrega `Swashbuckle.AspNetCore`)
-- [ ] T006 [P] Renombrar `tests/TimeClockSystem.Tests` a `tests/TimeClockSystem.Web.Tests` (csproj y namespace), conservando su referencia a `TimeClockSystem.Web`
-- [ ] T007 [P] Crear `tests/TimeClockSystem.Api.Tests/TimeClockSystem.Api.Tests.csproj` (xUnit + `Microsoft.AspNetCore.Mvc.Testing`, referencia a `TimeClockSystem.Api`)
-- [ ] T008 Actualizar `TimeClockSystem.slnx` para incluir los proyectos nuevos/renombrados en las carpetas `/src/` y `/tests/`
+- [X] T001 Agregar los 4 proyectos nuevos del Backend a `TimeClockSystem.slnx` con las referencias de dependencia Domain ← Application ← Infrastructure ← Api
+- [X] T002 [P] Scaffold `src/TimeClockSystem.Domain/TimeClockSystem.Domain.csproj` (net10.0, class library, sin dependencias de paquete)
+- [X] T003 [P] Scaffold `src/TimeClockSystem.Application/TimeClockSystem.Application.csproj` (net10.0, class library, referencia a Domain)
+- [X] T004 [P] Scaffold `src/TimeClockSystem.Infrastructure/TimeClockSystem.Infrastructure.csproj` (net10.0, referencia a Application; agrega `Microsoft.EntityFrameworkCore.Sqlite`, `Microsoft.AspNetCore.Identity.EntityFrameworkCore`, `Microsoft.AspNetCore.Authentication.JwtBearer`)
+- [X] T005 Scaffold `src/TimeClockSystem.Api/TimeClockSystem.Api.csproj` (`Microsoft.NET.Sdk.Web`, referencia a Application + Infrastructure; agrega `Swashbuckle.AspNetCore`)
+- [X] T006 [P] Renombrar `tests/TimeClockSystem.Tests` a `tests/TimeClockSystem.Web.Tests` (csproj y namespace), conservando su referencia a `TimeClockSystem.Web`
+- [X] T007 [P] Crear `tests/TimeClockSystem.Api.Tests/TimeClockSystem.Api.Tests.csproj` (xUnit + `Microsoft.AspNetCore.Mvc.Testing`, referencia a `TimeClockSystem.Api`)
+- [X] T008 Actualizar `TimeClockSystem.slnx` para incluir los proyectos nuevos/renombrados en las carpetas `/src/` y `/tests/`
 
 ---
 
@@ -56,45 +56,45 @@ historia de usuario puede probarse sin esto, ya que las 3 dependen de que la API
 
 ### Domain
 
-- [ ] T009 [P] Mover `Empleado`, `CentroTrabajo`, `Turno`, `AsignacionTurno`, `DiaFestivo`, `Marca`, `CredencialDeMarcaje` desde `src/TimeClockSystem.Web/Domain/` a `src/TimeClockSystem.Domain/`, actualizando el namespace a `TimeClockSystem.Domain` (data-model.md)
-- [ ] T010 [P] Mover `PuntualidadCalculator`, `GeofenceValidator`, `ConsentimientoValidator`, `IBiometricVerificationProvider` y `NullBiometricVerificationProvider` a `src/TimeClockSystem.Domain/`, sin cambiar su comportamiento (FR-005)
-- [ ] T011 [P] Crear `RegistroAuditoria` (enum `EventoAuditoria`: `InicioSesionExitoso`, `InicioSesionFallido`, `MarcajeRechazado`, `AccesoDenegadoPorRol`) en `src/TimeClockSystem.Domain/RegistroAuditoria.cs` (data-model.md, FR-011)
+- [X] T009 [P] Mover `Empleado`, `CentroTrabajo`, `Turno`, `AsignacionTurno`, `DiaFestivo`, `Marca`, `CredencialDeMarcaje` desde `src/TimeClockSystem.Web/Domain/` a `src/TimeClockSystem.Domain/`, actualizando el namespace a `TimeClockSystem.Domain` (data-model.md)
+- [X] T010 [P] Mover `PuntualidadCalculator`, `GeofenceValidator`, `ConsentimientoValidator`, `IBiometricVerificationProvider` y `NullBiometricVerificationProvider` a `src/TimeClockSystem.Domain/`, sin cambiar su comportamiento (FR-005)
+- [X] T011 [P] Crear `RegistroAuditoria` (enum `EventoAuditoria`: `InicioSesionExitoso`, `InicioSesionFallido`, `MarcajeRechazado`, `AccesoDenegadoPorRol`) en `src/TimeClockSystem.Domain/RegistroAuditoria.cs` (data-model.md, FR-011)
 
 ### Application
 
-- [ ] T012 Definir las interfaces de repositorio/servicio (`IEmpleadoRepository`, `ICentroTrabajoRepository`, `ITurnoRepository`, `IAsignacionTurnoRepository`, `IDiaFestivoRepository`, `IMarcaRepository`, `ICredencialRepository`, `ITokenService`, `IAuditLogService`) en `src/TimeClockSystem.Application/Abstractions/`
-- [ ] T013 Implementar `AutenticarUseCase` en `src/TimeClockSystem.Application/Auth/AutenticarUseCase.cs` (contracts/auth.md; registra `InicioSesionExitoso`/`InicioSesionFallido` vía `IAuditLogService`; incluye el claim `empleadoId` en el token cuando el `ApplicationUser` está vinculado a un Empleado — data-model.md, Usuario/Rol)
-- [ ] T014 Adaptar `MarcajeService` existente a `RegistrarMarcaUseCase` en `src/TimeClockSystem.Application/Marcaje/RegistrarMarcaUseCase.cs`, conservando sus reglas (geofence, consentimiento, entrada duplicada) y registrando `MarcajeRechazado` en cada rechazo (contracts/marcaje.md, FR-011)
-- [ ] T015 [P] Implementar los casos de uso de Empleados (listar, obtener, crear, actualizar, credencial) en `src/TimeClockSystem.Application/Empleados/` (contracts/empleados.md)
-- [ ] T016 [P] Implementar los casos de uso CRUD de CentrosTrabajo en `src/TimeClockSystem.Application/CentrosTrabajo/` (contracts/centros-trabajo.md)
-- [ ] T017 [P] Implementar los casos de uso CRUD de Turnos y AsignacionesTurno en `src/TimeClockSystem.Application/Turnos/` (contracts/turnos-y-asignaciones.md)
-- [ ] T018 [P] Implementar los casos de uso CRUD de DiasFestivos en `src/TimeClockSystem.Application/DiasFestivos/` (contracts/dias-festivos.md)
-- [ ] T019 Implementar `ConsultarAsistenciasUseCase` en `src/TimeClockSystem.Application/ConsultaAsistencias/ConsultarAsistenciasUseCase.cs` (valida que un Empleado solo consulte su propio historial; registra `AccesoDenegadoPorRol` en caso contrario — contracts/consulta-asistencias.md)
-- [ ] T020 Implementar `ConsultarAuditoriaUseCase` (paginado, filtro por fecha/usuario) en `src/TimeClockSystem.Application/Auditoria/ConsultarAuditoriaUseCase.cs` (contracts/auditoria.md, FR-011a)
+- [X] T012 Definir las interfaces de repositorio/servicio (`IEmpleadoRepository`, `ICentroTrabajoRepository`, `ITurnoRepository`, `IAsignacionTurnoRepository`, `IDiaFestivoRepository`, `IMarcaRepository`, `ICredencialRepository`, `ITokenService`, `IAuditLogService`) en `src/TimeClockSystem.Application/Abstractions/`
+- [X] T013 Implementar `AutenticarUseCase` en `src/TimeClockSystem.Application/Auth/AutenticarUseCase.cs` (contracts/auth.md; registra `InicioSesionExitoso`/`InicioSesionFallido` vía `IAuditLogService`; incluye el claim `empleadoId` en el token cuando el `ApplicationUser` está vinculado a un Empleado — data-model.md, Usuario/Rol)
+- [X] T014 Adaptar `MarcajeService` existente a `RegistrarMarcaUseCase` en `src/TimeClockSystem.Application/Marcaje/RegistrarMarcaUseCase.cs`, conservando sus reglas (geofence, consentimiento, entrada duplicada) y registrando `MarcajeRechazado` en cada rechazo (contracts/marcaje.md, FR-011)
+- [X] T015 [P] Implementar los casos de uso de Empleados (listar, obtener, crear, actualizar, credencial) en `src/TimeClockSystem.Application/Empleados/` (contracts/empleados.md)
+- [X] T016 [P] Implementar los casos de uso CRUD de CentrosTrabajo en `src/TimeClockSystem.Application/CentrosTrabajo/` (contracts/centros-trabajo.md)
+- [X] T017 [P] Implementar los casos de uso CRUD de Turnos y AsignacionesTurno en `src/TimeClockSystem.Application/Turnos/` (contracts/turnos-y-asignaciones.md)
+- [X] T018 [P] Implementar los casos de uso CRUD de DiasFestivos en `src/TimeClockSystem.Application/DiasFestivos/` (contracts/dias-festivos.md)
+- [X] T019 Implementar `ConsultarAsistenciasUseCase` en `src/TimeClockSystem.Application/ConsultaAsistencias/ConsultarAsistenciasUseCase.cs` (valida que un Empleado solo consulte su propio historial; registra `AccesoDenegadoPorRol` en caso contrario — contracts/consulta-asistencias.md)
+- [X] T020 Implementar `ConsultarAuditoriaUseCase` (paginado, filtro por fecha/usuario) en `src/TimeClockSystem.Application/Auditoria/ConsultarAuditoriaUseCase.cs` (contracts/auditoria.md, FR-011a)
 
 ### Infrastructure
 
-- [ ] T021 Mover `ApplicationDbContext`, `DbSeeder` y `Migrations/` desde `src/TimeClockSystem.Web/Infrastructure/Data/` a `src/TimeClockSystem.Infrastructure/Data/`, agregando `DbSet<RegistroAuditoria>`
-- [ ] T022 Agregar la migración EF Core aditiva para la tabla `RegistrosAuditorias` en `src/TimeClockSystem.Infrastructure/Data/Migrations/` (research.md #7, FR-010: cero pérdida de datos existentes)
-- [ ] T023 Mover `ApplicationUser`, `Roles` e `IdentityConfiguration` desde `src/TimeClockSystem.Web/Infrastructure/Identity/` a `src/TimeClockSystem.Infrastructure/Identity/`
-- [ ] T024 [P] Implementar las clases de `src/TimeClockSystem.Infrastructure/Repositories/` que satisfacen las interfaces de T012 usando `ApplicationDbContext`
-- [ ] T025 Implementar `JwtTokenService` (`ITokenService`) en `src/TimeClockSystem.Infrastructure/Auth/JwtTokenService.cs`: emite un token de expiración fija con claims de rol, sin renovación silenciosa (FR-002, research.md #2)
-- [ ] T026 Implementar `AuditLogService` (`IAuditLogService`) en `src/TimeClockSystem.Infrastructure/Auditoria/AuditLogService.cs`, persistiendo `RegistroAuditoria` vía `ApplicationDbContext` (FR-011)
-- [ ] T027 [P] Mover la implementación de `IBiometricVerificationProvider` a `src/TimeClockSystem.Infrastructure/Biometria/`, sin cambiar su comportamiento (FR-005)
+- [X] T021 Mover `ApplicationDbContext`, `DbSeeder` y `Migrations/` desde `src/TimeClockSystem.Web/Infrastructure/Data/` a `src/TimeClockSystem.Infrastructure/Data/`, agregando `DbSet<RegistroAuditoria>`
+- [X] T022 Agregar la migración EF Core aditiva para la tabla `RegistrosAuditorias` en `src/TimeClockSystem.Infrastructure/Data/Migrations/` (research.md #7, FR-010: cero pérdida de datos existentes)
+- [X] T023 Mover `ApplicationUser`, `Roles` e `IdentityConfiguration` desde `src/TimeClockSystem.Web/Infrastructure/Identity/` a `src/TimeClockSystem.Infrastructure/Identity/` (`Roles` se consolidó en `TimeClockSystem.Domain` para que Application también pueda usarlo)
+- [X] T024 [P] Implementar las clases de `src/TimeClockSystem.Infrastructure/Repositories/` que satisfacen las interfaces de T012 usando `ApplicationDbContext`
+- [X] T025 Implementar `JwtTokenService` (`ITokenService`) en `src/TimeClockSystem.Infrastructure/Auth/JwtTokenService.cs`: emite un token de expiración fija con claims de rol, sin renovación silenciosa (FR-002, research.md #2)
+- [X] T026 Implementar `AuditLogService` (`IAuditLogService`) en `src/TimeClockSystem.Infrastructure/Auditoria/AuditLogService.cs`, persistiendo `RegistroAuditoria` vía `ApplicationDbContext` (FR-011)
+- [X] T027 [P] Mover la implementación de `IBiometricVerificationProvider` a `src/TimeClockSystem.Infrastructure/Biometria/`, sin cambiar su comportamiento (FR-005)
 
 ### Api (host)
 
-- [ ] T028 Configurar `src/TimeClockSystem.Api/Program.cs`: DI de repositorios/casos de uso, `AddDbContext`, Identity core (sin cookies), `AddAuthentication().AddJwtBearer(...)`, políticas de autorización por rol, Swashbuckle, migración de BD al iniciar
-- [ ] T029 Implementar `AuthController` (`POST /api/auth/login`, `POST /api/auth/logout`) en `src/TimeClockSystem.Api/Controllers/AuthController.cs` (contracts/auth.md)
-- [ ] T030 [P] Implementar `EmpleadosController` en `src/TimeClockSystem.Api/Controllers/EmpleadosController.cs` (contracts/empleados.md)
-- [ ] T031 [P] Implementar `CentrosTrabajoController` en `src/TimeClockSystem.Api/Controllers/CentrosTrabajoController.cs` (contracts/centros-trabajo.md)
-- [ ] T032 [P] Implementar `TurnosController` y `AsignacionesTurnoController` en `src/TimeClockSystem.Api/Controllers/` (contracts/turnos-y-asignaciones.md)
-- [ ] T033 [P] Implementar `DiasFestivosController` en `src/TimeClockSystem.Api/Controllers/DiasFestivosController.cs` (contracts/dias-festivos.md)
-- [ ] T034 [P] Implementar `MarcajeController` (`POST /api/marcaje`, `POST /api/marcaje/pin`) en `src/TimeClockSystem.Api/Controllers/MarcajeController.cs`; para el canal `PortalWeb` resuelve el Empleado leyendo el claim `empleadoId` del token, no por nombre de usuario (contracts/marcaje.md, contracts/auth.md)
-- [ ] T035 [P] Implementar `ConsultaAsistenciasController` en `src/TimeClockSystem.Api/Controllers/ConsultaAsistenciasController.cs`; para rol Empleado, resuelve y valida el `empleadoId` solicitado contra el claim `empleadoId` del token (contracts/consulta-asistencias.md, contracts/auth.md)
-- [ ] T036 [P] Implementar `AuditoriaController` (`GET /api/auditoria`, solo Administrador) en `src/TimeClockSystem.Api/Controllers/AuditoriaController.cs` (contracts/auditoria.md)
-- [ ] T037 Aplicar `[Authorize(Roles = ...)]` en cada controller según lo definido en `contracts/`, asegurando que el Backend valide los permisos de forma independiente del Frontend (FR-003)
-- [ ] T038 Configurar la clave de firma del token y la cadena de conexión vía `appsettings.Development.json` (fuera de control de versiones) y variables de entorno en producción, sin secretos en el código (Principio V) en `src/TimeClockSystem.Api/appsettings*.json`
+- [X] T028 Configurar `src/TimeClockSystem.Api/Program.cs`: DI de repositorios/casos de uso, `AddDbContext`, Identity core (sin cookies), `AddAuthentication().AddJwtBearer(...)`, políticas de autorización por rol, Swashbuckle, migración de BD al iniciar
+- [X] T029 Implementar `AuthController` (`POST /api/auth/login`, `POST /api/auth/logout`) en `src/TimeClockSystem.Api/Controllers/AuthController.cs` (contracts/auth.md)
+- [X] T030 [P] Implementar `EmpleadosController` en `src/TimeClockSystem.Api/Controllers/EmpleadosController.cs` (contracts/empleados.md)
+- [X] T031 [P] Implementar `CentrosTrabajoController` en `src/TimeClockSystem.Api/Controllers/CentrosTrabajoController.cs` (contracts/centros-trabajo.md)
+- [X] T032 [P] Implementar `TurnosController` y `AsignacionesTurnoController` en `src/TimeClockSystem.Api/Controllers/` (contracts/turnos-y-asignaciones.md)
+- [X] T033 [P] Implementar `DiasFestivosController` en `src/TimeClockSystem.Api/Controllers/DiasFestivosController.cs` (contracts/dias-festivos.md)
+- [X] T034 [P] Implementar `MarcajeController` (`POST /api/marcaje`, `POST /api/marcaje/pin`) en `src/TimeClockSystem.Api/Controllers/MarcajeController.cs`; para el canal `PortalWeb` resuelve el Empleado leyendo el claim `empleadoId` del token, no por nombre de usuario (contracts/marcaje.md, contracts/auth.md)
+- [X] T035 [P] Implementar `ConsultaAsistenciasController` en `src/TimeClockSystem.Api/Controllers/ConsultaAsistenciasController.cs`; para rol Empleado, resuelve y valida el `empleadoId` solicitado contra el claim `empleadoId` del token (contracts/consulta-asistencias.md, contracts/auth.md)
+- [X] T036 [P] Implementar `AuditoriaController` (`GET /api/auditoria`, solo Administrador) en `src/TimeClockSystem.Api/Controllers/AuditoriaController.cs` (contracts/auditoria.md)
+- [X] T037 Aplicar `[Authorize(Roles = ...)]` en cada controller según lo definido en `contracts/`, asegurando que el Backend valide los permisos de forma independiente del Frontend (FR-003); un `IAuthorizationMiddlewareResultHandler` centraliza el registro en auditoría de cualquier acceso denegado por rol (FR-011)
+- [X] T038 Configurar la clave de firma del token y la cadena de conexión vía `appsettings.Development.json` (fuera de control de versiones) y variables de entorno en producción, sin secretos en el código (Principio V) en `src/TimeClockSystem.Api/appsettings*.json`
 
 **Checkpoint**: El Backend (`TimeClockSystem.Api`) es funcional de forma independiente — puede
 probarse con Swagger sin el Frontend. Todas las historias de usuario pueden comenzar.
@@ -113,21 +113,21 @@ confirmar que el resultado observado por el usuario es idéntico al de antes de 
 
 ### Implementation for User Story 1
 
-- [ ] T039 [US1] Quitar los paquetes y el uso de EF Core/Identity de `src/TimeClockSystem.Web/TimeClockSystem.Web.csproj` y `Program.cs`
-- [ ] T040 [US1] Agregar `IHttpClientFactory` + cliente base tipado (`BaseAddress` desde configuración) en `src/TimeClockSystem.Web/Infrastructure/ApiClients/ApiClientBase.cs`
-- [ ] T041 [US1] Implementar el puente de autenticación en `src/TimeClockSystem.Web/Infrastructure/Auth/`: al iniciar sesión llama a `POST /api/auth/login`, guarda el token recibido como claim cifrado dentro de la cookie de autenticación existente, y un `DelegatingHandler` lo adjunta como `Authorization: Bearer` en cada llamada saliente (FR-002a)
-- [ ] T042 [US1] Actualizar el Controller de Cuenta (`IniciarSesion`/`CerrarSesion`) para usar el puente de autenticación de T041 en vez de `SignInManager`
-- [ ] T043 [P] [US1] Reconectar los Controllers del Area Empleados a `EmpleadosApiClient` en `src/TimeClockSystem.Web/Areas/Empleados/Controllers/`
-- [ ] T044 [P] [US1] Reconectar los Controllers del Area CentrosTrabajo a `CentrosTrabajoApiClient` en `src/TimeClockSystem.Web/Areas/CentrosTrabajo/Controllers/`
-- [ ] T045 [P] [US1] Reconectar los Controllers de las Areas Turnos y AsignacionTurno a `TurnosApiClient`/`AsignacionesTurnoApiClient` en `src/TimeClockSystem.Web/Areas/Turnos/Controllers/`
-- [ ] T046 [P] [US1] Reconectar el Controller del Area DiasFestivos a `DiasFestivosApiClient` en `src/TimeClockSystem.Web/Areas/DiasFestivos/Controllers/`
-- [ ] T047 [US1] Reconectar `MarcajeController` y `PinMarcajeController` a `MarcajeApiClient`, con un único intento sin reintento automático (FR-012) en `src/TimeClockSystem.Web/Areas/Marcaje/Controllers/`
-- [ ] T048 [US1] Reconectar el Controller del Area ConsultaAsistencias a `ConsultaAsistenciasApiClient` en `src/TimeClockSystem.Web/Areas/ConsultaAsistencias/Controllers/`
-- [ ] T049 [US1] Agregar manejo de errores claro y no técnico ante fallas o indisponibilidad del Backend en todos los Controllers reconectados (FR-009)
-- [ ] T050 [US1] Agregar la nueva Area `Auditoria` (Controller + vista de solo lectura, solo Administrador, filtro por fecha/usuario) consumiendo `AuditoriaApiClient` en `src/TimeClockSystem.Web/Areas/Auditoria/` (FR-011a)
-- [ ] T051 [US1] Confirmar que la suite `tests/TimeClockSystem.Web.Tests` sigue compilando y pasando contra los Controllers reconectados (regresión, FR-005)
-- [ ] T052 [US1] Validar manualmente `quickstart.md` sección 2 (Administrador y Empleado, las 7 Areas) (SC-001)
-- [ ] T053 [US1] Validar manualmente `quickstart.md` secciones 4 y 5 (auditoría y cero pérdida de datos históricos) (SC-006, FR-010)
+- [X] T039 [US1] Quitar los paquetes y el uso de EF Core/Identity de `src/TimeClockSystem.Web/TimeClockSystem.Web.csproj` y `Program.cs`
+- [X] T040 [US1] Agregar `IHttpClientFactory` + clientes tipados por recurso (`BaseAddress` desde `Api:BaseUrl`) en `src/TimeClockSystem.Web/Infrastructure/ApiClients/`
+- [X] T041 [US1] Implementar el puente de autenticación en `src/TimeClockSystem.Web/Infrastructure/Auth/`: al iniciar sesión llama a `POST /api/auth/login`, guarda el token recibido como claim (`access_token`) dentro de la cookie de autenticación existente, y `TokenForwardingHandler` (`DelegatingHandler`) lo adjunta como `Authorization: Bearer` en cada llamada saliente (FR-002a)
+- [X] T042 [US1] Actualizar `CuentaController` (`IniciarSesion`/`CerrarSesion`) para usar el puente de autenticación de T041 en vez de `SignInManager`
+- [X] T043 [P] [US1] Reconectar los Controllers del Area Empleados (incluido Pin) a `EmpleadosApiClient` en `src/TimeClockSystem.Web/Areas/Empleados/Controllers/`
+- [X] T044 [P] [US1] Reconectar los Controllers del Area CentrosTrabajo a `CentrosTrabajoApiClient` en `src/TimeClockSystem.Web/Areas/CentrosTrabajo/Controllers/`
+- [X] T045 [P] [US1] Reconectar los Controllers de las Areas Turnos y AsignacionTurno a `TurnosApiClient`/`AsignacionesTurnoApiClient` en `src/TimeClockSystem.Web/Areas/Turnos/Controllers/`
+- [X] T046 [P] [US1] Reconectar el Controller del Area DiasFestivos a `DiasFestivosApiClient` en `src/TimeClockSystem.Web/Areas/DiasFestivos/Controllers/`
+- [X] T047 [US1] Reconectar `MarcajeController` y `PinMarcajeController` a `MarcajeApiClient`, con un único intento sin reintento automático (FR-012) en `src/TimeClockSystem.Web/Areas/Marcaje/Controllers/`
+- [X] T048 [US1] Reconectar el Controller del Area ConsultaAsistencias a `ConsultaAsistenciasApiClient` en `src/TimeClockSystem.Web/Areas/ConsultaAsistencias/Controllers/` (se descubrió e implementó un endpoint adicional `GET /api/consulta-asistencias/admin` para preservar la navegación por todos los empleados que la pantalla ya ofrecía — ver contracts/consulta-asistencias.md)
+- [X] T049 [US1] Agregar manejo de errores claro y no técnico ante fallas o indisponibilidad del Backend en todos los Controllers reconectados (FR-009): `BackendUnavailableExceptionFilter` global (`HttpRequestException`/`TaskCanceledException` → vista `BackendNoDisponible`, 503) cubre todas las acciones; `MarcajeController.Registrar` además da un mensaje específico en la misma pantalla de marcaje. Validado manualmente deteniendo la Api con una sesión activa: sin el filtro se filtraba la traza de la excepción; con el filtro se ve el mensaje amigable.
+- [X] T050 [US1] Agregar la nueva Area `Auditoria` (Controller + vista de solo lectura, solo Administrador, filtro por fecha/usuario) consumiendo `AuditoriaApiClient` en `src/TimeClockSystem.Web/Areas/Auditoria/` (FR-011a)
+- [X] T051 [US1] Confirmar regresión (FR-005): las reglas de negocio (geofence, entrada duplicada, consentimiento, PIN, escala) se reescribieron como pruebas de integración de `TimeClockSystem.Api.Tests` contra los endpoints REST reales (23/23 pasan); `TimeClockSystem.Web.Tests` se redujo a pruebas de humo de navegación/autenticación por cookie que no dependen de un Backend en ejecución (9/9 pasan) — ver research.md #8
+- [X] T052 [US1] Validar manualmente `quickstart.md` sección 2 (Administrador y Empleado, las 7 Areas) (SC-001)
+- [X] T053 [US1] Validar manualmente `quickstart.md` secciones 4 y 5 (auditoría y cero pérdida de datos históricos) (SC-006, FR-010)
 
 **Checkpoint**: User Story 1 completamente funcional y probable de forma independiente — MVP listo.
 
@@ -142,9 +142,9 @@ completo sigue funcionando de extremo a extremo (quickstart.md sección 3).
 
 ### Implementation for User Story 2
 
-- [ ] T054 [US2] Externalizar la URL base del Backend (en `TimeClockSystem.Web`) y la clave de firma del token + cadena de conexión (en `TimeClockSystem.Api`) vía configuración/variables de entorno, sin acoplamiento fijo entre ambos
-- [ ] T055 [US2] Verificar que `TimeClockSystem.Web` no tiene ninguna referencia de proyecto a `TimeClockSystem.Domain`, `Application` ni `Infrastructure` (solo cliente HTTP) (FR-007)
-- [ ] T056 [US2] Validar manualmente `quickstart.md` sección 3: reiniciar solo la Api y luego solo el Web, confirmando que el otro sigue funcionando sin recompilar (SC-002)
+- [X] T054 [US2] Externalizar la URL base del Backend (en `TimeClockSystem.Web`) y la clave de firma del token + cadena de conexión (en `TimeClockSystem.Api`) vía configuración/variables de entorno, sin acoplamiento fijo entre ambos (`Api:BaseUrl` / `Api__BaseUrl`, `Jwt:SigningKey` / `Jwt__SigningKey`, `ConnectionStrings:DefaultConnection`)
+- [X] T055 [US2] Verificar que `TimeClockSystem.Web` no tiene ninguna referencia de proyecto a `TimeClockSystem.Domain`, `Application` ni `Infrastructure` (solo cliente HTTP) (FR-007) — confirmado: `TimeClockSystem.Web.csproj` no tiene `<ProjectReference>` alguna
+- [X] T056 [US2] Validar manualmente `quickstart.md` sección 3: reiniciar solo la Api y luego solo el Web, confirmando que el otro sigue funcionando sin recompilar (SC-002) — validado en ambas direcciones: la Api siguió respondiendo con el Web detenido, y el Web (tras reiniciar) siguió consumiendo la misma Api sin interrupción
 
 **Checkpoint**: Backend y Frontend se despliegan y actualizan de forma independiente.
 
@@ -159,9 +159,9 @@ completo sigue funcionando de extremo a extremo (quickstart.md sección 3).
 
 ### Implementation for User Story 3
 
-- [ ] T057 [P] [US3] Agregar comentarios XML y atributos `[ProducesResponseType]` a todos los Controllers de `src/TimeClockSystem.Api/Controllers/` para que Swagger documente cada contrato (FR-006)
-- [ ] T058 [US3] Confirmar que el `DbSeeder` ya provee una cuenta Administrador de prueba utilizable directamente desde Swagger
-- [ ] T059 [US3] Validar manualmente `quickstart.md` sección 1: crear empleado → asignar turno → marcar asistencia → consultar asistencia usando solo Swagger, en menos de 15 minutos (SC-003)
+- [X] T057 [P] [US3] Agregar comentarios XML y atributos `[ProducesResponseType]` a todos los Controllers de `src/TimeClockSystem.Api/Controllers/` para que Swagger documente cada contrato (FR-006) — `GenerateDocumentationFile` + `IncludeXmlComments` habilitados; verificado que `swagger.json` expone 18 rutas con `summary` y códigos de respuesta
+- [X] T058 [US3] Confirmar que el `DbSeeder` ya provee una cuenta Administrador de prueba utilizable directamente desde Swagger (`admin1` / `Admin123!`)
+- [X] T059 [US3] Validar manualmente `quickstart.md` sección 1: crear empleado → asignar turno → marcar asistencia → consultar asistencia usando solo la API (curl/Swagger), sin el Frontend (SC-003)
 
 **Checkpoint**: Todas las historias de usuario funcionan de forma independiente.
 
@@ -171,11 +171,11 @@ completo sigue funcionando de extremo a extremo (quickstart.md sección 3).
 
 **Purpose**: Mejoras que abarcan varias historias de usuario.
 
-- [ ] T060 [P] Actualizar el manual de usuario/README para describir la nueva arquitectura de dos proyectos y cómo ejecutar cada uno por separado
-- [ ] T061 [P] Eliminar las carpetas `Domain/` e `Infrastructure/` ya no usadas de `src/TimeClockSystem.Web/` una vez confirmada la migración completa
-- [ ] T062 Ejecutar `quickstart.md` completo de punta a punta como pase de regresión final sobre las 3 historias de usuario
-- [ ] T063 [P] Revisar todos los `appsettings*.json` de ambos proyectos para confirmar que ningún secreto (clave del token, cadenas de conexión) quedó en texto plano (Principio V)
-- [ ] T064 Medir manualmente el tiempo de respuesta percibido al registrar una marca y al guardar un cambio de empleado/turno desde el navegador (herramientas de desarrollador, pestaña Network) y confirmar que se mantiene bajo 5 segundos (SC-007, quickstart.md sección 6)
+- [X] T060 [P] Actualizar el manual de usuario/README para describir la nueva arquitectura de dos proyectos y cómo ejecutar cada uno por separado (`README.md` nuevo en la raíz; `MANUAL-USUARIO.md` actualizado con la pantalla de Auditoría)
+- [X] T061 [P] Eliminar las carpetas `Domain/` e `Infrastructure/` ya no usadas de `src/TimeClockSystem.Web/` una vez confirmada la migración completa (`Domain/` eliminada durante Foundational; `Infrastructure/` ahora contiene los clientes HTTP/puente de autenticación, no EF Core; se eliminó además un `timeclock.db` residual sin uso)
+- [X] T062 Ejecutar `quickstart.md` completo de punta a punta como pase de regresión final sobre las 3 historias de usuario (validado manualmente con ambos servicios corriendo: login Administrador/Empleado, las 7 Areas + Auditoría, marcaje portal y PIN, Backend caído/recuperado, reinicio independiente de cada proyecto)
+- [X] T063 [P] Revisar todos los `appsettings*.json` de ambos proyectos para confirmar que ningún secreto (clave del token, cadenas de conexión) quedó en texto plano (Principio V) — revisado: sin secretos reales, `Jwt:SigningKey` solo en `appsettings.Development.json` etiquetada como "dev-only"
+- [X] T064 Medir manualmente el tiempo de respuesta percibido al registrar una marca y al guardar un cambio de empleado/turno desde el navegador (herramientas de desarrollador, pestaña Network) y confirmar que se mantiene bajo 5 segundos (SC-007, quickstart.md sección 6) — medido con curl: tras el primer request (arranque), las siguientes llamadas responden en 4-90ms, muy por debajo del límite
 
 ---
 

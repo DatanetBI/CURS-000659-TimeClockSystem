@@ -1,10 +1,11 @@
 using System.Globalization;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Localization;
-using Microsoft.EntityFrameworkCore;
-using TimeClockSystem.Web.Infrastructure.Data;
-using TimeClockSystem.Web.Infrastructure.Identity;
+using TimeClockSystem.Web.Infrastructure.ApiClients;
+using TimeClockSystem.Web.Infrastructure.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,36 +14,52 @@ var culturaMx = new CultureInfo("es-MX");
 CultureInfo.DefaultThreadCurrentCulture = culturaMx;
 CultureInfo.DefaultThreadCurrentUICulture = culturaMx;
 
-// Cadena de conexión desde configuración (appsettings.json en desarrollo, variable de entorno
-// ConnectionStrings__DefaultConnection en producción — Principio V, sin secretos en el código).
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("No se configuró ConnectionStrings:DefaultConnection.");
+// URL base del Backend desde configuración (FR-007/FR-008: llamadas HTTP directas, sin gateway).
+var apiBaseUrl = builder.Configuration["Api:BaseUrl"]
+    ?? throw new InvalidOperationException("No se configuró Api:BaseUrl.");
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString));
+builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddTimeClockIdentity();
+// Nombre de aplicación explícito para Data Protection: el Frontend y el Backend corren en la
+// misma máquina y comparten el almacén de claves por usuario; sin esto, ambos podrían competir
+// por el mismo "discriminador" de aplicación y romper la cookie de autenticación/antiforgery.
+builder.Services.AddDataProtection().SetApplicationName("TimeClockSystem.Web");
 
-builder.Services.AddScoped<TimeClockSystem.Web.Domain.IBiometricVerificationProvider, TimeClockSystem.Web.Domain.NullBiometricVerificationProvider>();
-builder.Services.AddScoped<TimeClockSystem.Web.Areas.Marcaje.MarcajeService>();
+// Autenticación por cookie propia del Frontend (sin Identity ni EF Core — research.md #2). El
+// token del Backend viaja como claim dentro de esta cookie cifrada, nunca al navegador (FR-002a).
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Cuenta/IniciarSesion";
+        options.AccessDeniedPath = "/Cuenta/AccesoDenegado";
+    });
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddAuthorization();
+
+builder.Services.AddTransient<TokenForwardingHandler>();
+
+builder.Services.AddHttpClient<AuthApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
+
+void ConfigurarClienteApi<TClient>(IHttpClientBuilder builder) => builder.AddHttpMessageHandler<TokenForwardingHandler>();
+
+ConfigurarClienteApi<EmpleadosApiClient>(builder.Services.AddHttpClient<EmpleadosApiClient>(c => c.BaseAddress = new Uri(apiBaseUrl)));
+ConfigurarClienteApi<CentrosTrabajoApiClient>(builder.Services.AddHttpClient<CentrosTrabajoApiClient>(c => c.BaseAddress = new Uri(apiBaseUrl)));
+ConfigurarClienteApi<TurnosApiClient>(builder.Services.AddHttpClient<TurnosApiClient>(c => c.BaseAddress = new Uri(apiBaseUrl)));
+ConfigurarClienteApi<AsignacionesTurnoApiClient>(builder.Services.AddHttpClient<AsignacionesTurnoApiClient>(c => c.BaseAddress = new Uri(apiBaseUrl)));
+ConfigurarClienteApi<DiasFestivosApiClient>(builder.Services.AddHttpClient<DiasFestivosApiClient>(c => c.BaseAddress = new Uri(apiBaseUrl)));
+ConfigurarClienteApi<MarcajeApiClient>(builder.Services.AddHttpClient<MarcajeApiClient>(c => c.BaseAddress = new Uri(apiBaseUrl)));
+ConfigurarClienteApi<ConsultaAsistenciasApiClient>(builder.Services.AddHttpClient<ConsultaAsistenciasApiClient>(c => c.BaseAddress = new Uri(apiBaseUrl)));
+ConfigurarClienteApi<AuditoriaApiClient>(builder.Services.AddHttpClient<AuditoriaApiClient>(c => c.BaseAddress = new Uri(apiBaseUrl)));
+
+builder.Services.AddControllersWithViews(options =>
+    options.Filters.Add<TimeClockSystem.Web.Infrastructure.BackendUnavailableExceptionFilter>());
 
 // El HtmlEncoder por defecto convierte acentos/eñes a entidades numéricas (&#233;); se permite el
 // rango Latin-1 Supplement para que el español de México se renderice como texto literal.
 builder.Services.AddSingleton(HtmlEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement));
 
 var app = builder.Build();
-
-// Sembrar roles y datos mock al iniciar (research.md #10 - Datos de ejemplo para la prueba de concepto).
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await db.Database.MigrateAsync();
-
-    await IdentityConfiguration.EnsureRolesCreatedAsync(scope.ServiceProvider);
-    await DbSeeder.SeedAsync(scope.ServiceProvider);
-}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

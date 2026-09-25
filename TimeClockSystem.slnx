@@ -1,8 +1,13 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/TimeClockSystem.Domain/TimeClockSystem.Domain.csproj" />
+    <Project Path="src/TimeClockSystem.Application/TimeClockSystem.Application.csproj" />
+    <Project Path="src/TimeClockSystem.Infrastructure/TimeClockSystem.Infrastructure.csproj" />
+    <Project Path="src/TimeClockSystem.Api/TimeClockSystem.Api.csproj" />
     <Project Path="src/TimeClockSystem.Web/TimeClockSystem.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/TimeClockSystem.Tests/TimeClockSystem.Tests.csproj" />
+    <Project Path="tests/TimeClockSystem.Api.Tests/TimeClockSystem.Api.Tests.csproj" />
+    <Project Path="tests/TimeClockSystem.Web.Tests/TimeClockSystem.Web.Tests.csproj" />
   </Folder>
 </Solution>

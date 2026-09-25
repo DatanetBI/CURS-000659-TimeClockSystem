@@ -8,7 +8,7 @@ Autentica a un usuario existente y emite el token que el Frontend usará en cada
 
 - **Auth**: ninguna (endpoint público)
 - **Request**: `{ "usuario": string, "contrasena": string }`
-- **Response 200**: `{ "token": string, "expiraEnUtc": datetime, "rol": "Administrador" | "Empleado", "nombre": string }`
+- **Response 200**: `{ "token": string, "expiraEnUtc": datetime, "rol": "Administrador" | "Empleado", "nombre": string, "empleadoId": int? }`
 - **Response 401**: credenciales inválidas — el Backend MUST registrar un `RegistroAuditoria`
   (`InicioSesionFallido`) con el usuario intentado (FR-011).
 - **Notas**: el token tiene expiración fija (FR-002); no existe endpoint de refresh. Un

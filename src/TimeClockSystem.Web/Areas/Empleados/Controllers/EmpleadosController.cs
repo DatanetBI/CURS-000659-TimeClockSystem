@@ -1,25 +1,18 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using TimeClockSystem.Web.Domain;
-using TimeClockSystem.Web.Infrastructure.Data;
-using TimeClockSystem.Web.Infrastructure.Identity;
+using TimeClockSystem.Web.Infrastructure.ApiClients;
+using TimeClockSystem.Web.Infrastructure.Auth;
+using TimeClockSystem.Web.ViewModels;
 
 namespace TimeClockSystem.Web.Areas.Empleados.Controllers;
 
 [Area("Empleados")]
 [Authorize(Roles = Roles.Administrador)]
-public class EmpleadosController(ApplicationDbContext db) : Controller
+public class EmpleadosController(EmpleadosApiClient empleadosApi, CentrosTrabajoApiClient centrosTrabajoApi) : Controller
 {
-    public async Task<IActionResult> Index()
-    {
-        var empleados = await db.Empleados
-            .Include(e => e.CentroTrabajo)
-            .OrderBy(e => e.NumeroEmpleado)
-            .ToListAsync();
-        return View(empleados);
-    }
+    public async Task<IActionResult> Index() =>
+        View((await empleadosApi.ListarAsync()).OrderBy(e => e.NumeroEmpleado).ToList());
 
     public async Task<IActionResult> Create()
     {
@@ -31,26 +24,26 @@ public class EmpleadosController(ApplicationDbContext db) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Empleado modelo)
     {
-        if (await NumeroEmpleadoYaExisteAsync(modelo.NumeroEmpleado, modelo.Id))
-        {
-            ModelState.AddModelError(nameof(Empleado.NumeroEmpleado), "Ya existe un empleado con este número.");
-        }
-
         if (!ModelState.IsValid)
         {
             await CargarCentrosDeTrabajoAsync();
             return View(modelo);
         }
 
-        db.Empleados.Add(modelo);
-        await db.SaveChangesAsync();
+        if (!await empleadosApi.CrearAsync(modelo))
+        {
+            ModelState.AddModelError(string.Empty, "No se pudo crear el empleado (verifica que el número de empleado no esté repetido).");
+            await CargarCentrosDeTrabajoAsync();
+            return View(modelo);
+        }
+
         TempData["Mensaje"] = $"Empleado \"{modelo.Nombre}\" creado correctamente. Ahora puedes asignarle un PIN de marcaje.";
         return RedirectToAction(nameof(Index));
     }
 
     public async Task<IActionResult> Edit(int id)
     {
-        var empleado = await db.Empleados.FindAsync(id);
+        var empleado = await empleadosApi.ObtenerAsync(id);
         if (empleado is null)
         {
             return NotFound();
@@ -68,29 +61,25 @@ public class EmpleadosController(ApplicationDbContext db) : Controller
             return BadRequest();
         }
 
-        if (await NumeroEmpleadoYaExisteAsync(modelo.NumeroEmpleado, modelo.Id))
-        {
-            ModelState.AddModelError(nameof(Empleado.NumeroEmpleado), "Ya existe un empleado con este número.");
-        }
-
         if (!ModelState.IsValid)
         {
             await CargarCentrosDeTrabajoAsync();
             return View(modelo);
         }
 
-        db.Empleados.Update(modelo);
-        await db.SaveChangesAsync();
+        if (!await empleadosApi.ActualizarAsync(id, modelo))
+        {
+            ModelState.AddModelError(string.Empty, "No se pudo actualizar el empleado (verifica que el número de empleado no esté repetido).");
+            await CargarCentrosDeTrabajoAsync();
+            return View(modelo);
+        }
+
         TempData["Mensaje"] = $"Empleado \"{modelo.Nombre}\" actualizado correctamente.";
         return RedirectToAction(nameof(Index));
     }
 
-    private async Task<bool> NumeroEmpleadoYaExisteAsync(string numeroEmpleado, int idActual) =>
-        await db.Empleados.AnyAsync(e => e.NumeroEmpleado == numeroEmpleado && e.Id != idActual);
-
     private async Task CargarCentrosDeTrabajoAsync()
     {
-        ViewBag.CentrosTrabajo = new SelectList(
-            await db.CentrosTrabajo.OrderBy(c => c.Nombre).ToListAsync(), "Id", "Nombre");
+        ViewBag.CentrosTrabajo = new SelectList(await centrosTrabajoApi.ListarAsync(), "Id", "Nombre");
     }
 }

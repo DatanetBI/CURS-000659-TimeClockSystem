@@ -101,6 +101,18 @@ Menú "Consulta de asistencias".
 1. Filtra por empleado, centro de trabajo y/o fecha → "Filtrar".
 2. Cada marca muestra: fecha y hora, empleado, centro de trabajo, tipo (entrada/salida/receso), si fue válida o rechazada, si fue puntual o tardía (comparada contra el turno asignado ese día), y si el día fue festivo.
 
+### 6. Auditoría
+
+Menú "Auditoría" (agregado junto con la separación del sistema en Backend/Frontend — ver
+`specs/002-split-backend-frontend`).
+
+1. Filtra por fecha y/o usuario → "Filtrar".
+2. Cada fila muestra: fecha y hora, tipo de evento (inicio de sesión exitoso o fallido, marcaje
+   rechazado, acceso denegado por rol), y el detalle de qué se intentó.
+
+Esta pantalla permite resolver disputas laborales sin necesidad de consultar la base de datos
+directamente.
+
 ## Manual del rol Empleado
 
 ### Marcar asistencia desde el portal

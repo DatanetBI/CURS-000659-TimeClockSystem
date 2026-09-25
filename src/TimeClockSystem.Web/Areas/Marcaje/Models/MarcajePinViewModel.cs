@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using TimeClockSystem.Web.Domain;
+using TimeClockSystem.Web.ViewModels;
 
 namespace TimeClockSystem.Web.Areas.Marcaje.Models;
 

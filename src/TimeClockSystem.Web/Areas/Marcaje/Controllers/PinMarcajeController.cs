@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using TimeClockSystem.Web.Areas.Marcaje.Models;
-using TimeClockSystem.Web.Domain;
-using TimeClockSystem.Web.Infrastructure.Data;
+using TimeClockSystem.Web.Infrastructure.ApiClients;
+using TimeClockSystem.Web.ViewModels;
 
 namespace TimeClockSystem.Web.Areas.Marcaje.Controllers;
 
@@ -14,10 +12,8 @@ namespace TimeClockSystem.Web.Areas.Marcaje.Controllers;
 /// </summary>
 [Area("Marcaje")]
 [AllowAnonymous]
-public class PinMarcajeController(ApplicationDbContext db, MarcajeService marcajeService) : Controller
+public class PinMarcajeController(MarcajeApiClient marcajeApi) : Controller
 {
-    private static readonly PasswordHasher<Empleado> PinHasher = new();
-
     public IActionResult Index() => View(new MarcajePinViewModel());
 
     [HttpPost]
@@ -29,25 +25,18 @@ public class PinMarcajeController(ApplicationDbContext db, MarcajeService marcaj
             return View(modelo);
         }
 
-        var empleado = await db.Empleados
-            .Include(e => e.CredencialDeMarcaje)
-            .FirstOrDefaultAsync(e => e.NumeroEmpleado == modelo.NumeroEmpleado);
+        var resultado = await marcajeApi.RegistrarPorPinAsync(modelo.NumeroEmpleado, modelo.Pin, modelo.Tipo, modelo.Latitud, modelo.Longitud);
 
-        if (empleado?.CredencialDeMarcaje is null ||
-            PinHasher.VerifyHashedPassword(empleado, empleado.CredencialDeMarcaje.PinHash, modelo.Pin)
-                == PasswordVerificationResult.Failed)
+        if (resultado is null || (!resultado.Aceptada && resultado.Motivo == MotivoRechazoMarca.CredencialesInvalidas))
         {
             // FR-003: mensaje genérico, sin indicar cuál de los dos datos falló.
             ModelState.AddModelError(string.Empty, "Credenciales inválidas.");
             return View(modelo);
         }
 
-        var resultado = await marcajeService.RegistrarAsync(
-            empleado.Id, modelo.Tipo, CanalMarca.Pin, modelo.Latitud, modelo.Longitud);
-
         ViewBag.ResultadoAceptado = resultado.Aceptada;
-        ViewBag.NombreEmpleado = empleado.Nombre;
-        ViewBag.HoraMarca = resultado.Marca?.Timestamp;
+        ViewBag.NombreEmpleado = resultado.EmpleadoNombre ?? modelo.NumeroEmpleado;
+        ViewBag.HoraMarca = resultado.Timestamp;
         ViewBag.MotivoRechazo = resultado.Motivo;
 
         return View("Resultado");

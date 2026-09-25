@@ -10,8 +10,8 @@ Registra una marca (Entrada/Salida/InicioReceso/FinReceso) para el empleado aute
 - **Auth**: Empleado (canal `PortalWeb`, usa el empleado de la sesión) o público con credencial PIN
   válida (canal `Pin`, ver `POST /api/marcaje/pin`).
 - **Request**: `{ tipo: "Entrada"|"Salida"|"InicioReceso"|"FinReceso", latitud?: double, longitud?: double }`
-- **Response 200**: `{ aceptada: true, marcaId, timestamp }`
-- **Response 200 (rechazada)**: `{ aceptada: false, motivo: "Geofence"|"EntradaDuplicada"|"CredencialesInvalidas"|"SinConsentimientoGeolocalizacion" }`
+- **Response 200**: `{ aceptada: true, marcaId, timestamp, empleadoNombre }`
+- **Response 200 (rechazada)**: `{ aceptada: false, motivo: "Geofence"|"EntradaDuplicada"|"CredencialesInvalidas"|"SinConsentimientoGeolocalizacion", empleadoNombre }`
   — el Backend MUST registrar un `RegistroAuditoria` (`MarcajeRechazado`) con el motivo (FR-011).
 - **Notas de red**: el Frontend hace un único intento sin reintento automático (FR-012); el Backend
   no necesita una clave de idempotencia en esta iteración (research.md #6).

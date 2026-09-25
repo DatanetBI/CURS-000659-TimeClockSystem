@@ -1,21 +1,17 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TimeClockSystem.Web.Domain;
-using TimeClockSystem.Web.Infrastructure.Data;
-using TimeClockSystem.Web.Infrastructure.Identity;
+using TimeClockSystem.Web.Infrastructure.ApiClients;
+using TimeClockSystem.Web.Infrastructure.Auth;
+using TimeClockSystem.Web.ViewModels;
 
 namespace TimeClockSystem.Web.Areas.CentrosTrabajo.Controllers;
 
 [Area("CentrosTrabajo")]
 [Authorize(Roles = Roles.Administrador)]
-public class CentrosTrabajoController(ApplicationDbContext db) : Controller
+public class CentrosTrabajoController(CentrosTrabajoApiClient centrosTrabajoApi) : Controller
 {
-    public async Task<IActionResult> Index()
-    {
-        var centros = await db.CentrosTrabajo.OrderBy(c => c.Nombre).ToListAsync();
-        return View(centros);
-    }
+    public async Task<IActionResult> Index() =>
+        View((await centrosTrabajoApi.ListarAsync()).OrderBy(c => c.Nombre).ToList());
 
     public IActionResult Create() => View(new CentroTrabajo());
 
@@ -28,20 +24,20 @@ public class CentrosTrabajoController(ApplicationDbContext db) : Controller
             return View(modelo);
         }
 
-        db.CentrosTrabajo.Add(modelo);
-        await db.SaveChangesAsync();
+        if (!await centrosTrabajoApi.CrearAsync(modelo))
+        {
+            ModelState.AddModelError(string.Empty, "No se pudo crear el centro de trabajo.");
+            return View(modelo);
+        }
+
         TempData["Mensaje"] = $"Centro de trabajo \"{modelo.Nombre}\" creado correctamente.";
         return RedirectToAction(nameof(Index));
     }
 
     public async Task<IActionResult> Edit(int id)
     {
-        var centro = await db.CentrosTrabajo.FindAsync(id);
-        if (centro is null)
-        {
-            return NotFound();
-        }
-        return View(centro);
+        var centro = await centrosTrabajoApi.ObtenerAsync(id);
+        return centro is null ? NotFound() : View(centro);
     }
 
     [HttpPost]
@@ -58,8 +54,12 @@ public class CentrosTrabajoController(ApplicationDbContext db) : Controller
             return View(modelo);
         }
 
-        db.CentrosTrabajo.Update(modelo);
-        await db.SaveChangesAsync();
+        if (!await centrosTrabajoApi.ActualizarAsync(id, modelo))
+        {
+            ModelState.AddModelError(string.Empty, "No se pudo actualizar el centro de trabajo.");
+            return View(modelo);
+        }
+
         TempData["Mensaje"] = $"Centro de trabajo \"{modelo.Nombre}\" actualizado correctamente.";
         return RedirectToAction(nameof(Index));
     }

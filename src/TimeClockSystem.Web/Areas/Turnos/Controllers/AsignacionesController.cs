@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using TimeClockSystem.Web.Areas.Turnos.Models;
-using TimeClockSystem.Web.Domain;
-using TimeClockSystem.Web.Infrastructure.Data;
-using TimeClockSystem.Web.Infrastructure.Identity;
+using TimeClockSystem.Web.Infrastructure.ApiClients;
+using TimeClockSystem.Web.Infrastructure.Auth;
 
 namespace TimeClockSystem.Web.Areas.Turnos.Controllers;
 
@@ -16,7 +14,8 @@ namespace TimeClockSystem.Web.Areas.Turnos.Controllers;
 /// </summary>
 [Area("Turnos")]
 [Authorize(Roles = Roles.Administrador)]
-public class AsignacionesController(ApplicationDbContext db) : Controller
+public class AsignacionesController(
+    AsignacionesTurnoApiClient asignacionesApi, TurnosApiClient turnosApi, EmpleadosApiClient empleadosApi) : Controller
 {
     public async Task<IActionResult> Individual()
     {
@@ -34,13 +33,12 @@ public class AsignacionesController(ApplicationDbContext db) : Controller
             return View(modelo);
         }
 
-        db.AsignacionesTurno.Add(new AsignacionTurno
+        if (!await asignacionesApi.CrearAsync(modelo.EmpleadoId, modelo.TurnoId, modelo.Fecha))
         {
-            EmpleadoId = modelo.EmpleadoId,
-            TurnoId = modelo.TurnoId,
-            Fecha = modelo.Fecha,
-        });
-        await db.SaveChangesAsync();
+            ModelState.AddModelError(string.Empty, "No se pudo asignar el turno.");
+            await CargarListasAsync();
+            return View(modelo);
+        }
 
         TempData["Mensaje"] = "Turno asignado correctamente.";
         return RedirectToAction(nameof(Individual));
@@ -49,7 +47,7 @@ public class AsignacionesController(ApplicationDbContext db) : Controller
     public async Task<IActionResult> Masiva()
     {
         await CargarListasAsync();
-        ViewBag.Empleados = await db.Empleados.OrderBy(e => e.NumeroEmpleado).ToListAsync();
+        ViewBag.Empleados = (await empleadosApi.ListarAsync()).OrderBy(e => e.NumeroEmpleado).ToList();
         return View(new AsignacionMasivaViewModel());
     }
 
@@ -64,7 +62,7 @@ public class AsignacionesController(ApplicationDbContext db) : Controller
                 ModelState.AddModelError(string.Empty, "Selecciona al menos un empleado.");
             }
             await CargarListasAsync();
-            ViewBag.Empleados = await db.Empleados.OrderBy(e => e.NumeroEmpleado).ToListAsync();
+            ViewBag.Empleados = (await empleadosApi.ListarAsync()).OrderBy(e => e.NumeroEmpleado).ToList();
             return View(modelo);
         }
 
@@ -73,16 +71,15 @@ public class AsignacionesController(ApplicationDbContext db) : Controller
 
         foreach (var empleadoId in modelo.EmpleadoIdsSeleccionados)
         {
-            db.AsignacionesTurno.Add(new AsignacionTurno
+            if (await asignacionesApi.CrearAsync(empleadoId, modelo.TurnoId, modelo.Fecha))
             {
-                EmpleadoId = empleadoId,
-                TurnoId = modelo.TurnoId,
-                Fecha = modelo.Fecha,
-            });
-            asignados++;
+                asignados++;
+            }
+            else
+            {
+                excluidos++;
+            }
         }
-
-        await db.SaveChangesAsync();
 
         TempData["Mensaje"] = $"Asignación masiva completada: {asignados} empleado(s) asignados, {excluidos} excluido(s).";
         return RedirectToAction(nameof(Masiva));
@@ -90,8 +87,7 @@ public class AsignacionesController(ApplicationDbContext db) : Controller
 
     private async Task CargarListasAsync()
     {
-        ViewBag.Turnos = new SelectList(await db.Turnos.OrderBy(t => t.Nombre).ToListAsync(), "Id", "Nombre");
-        ViewBag.EmpleadosIndividual = new SelectList(
-            await db.Empleados.OrderBy(e => e.NumeroEmpleado).ToListAsync(), "Id", "NumeroEmpleado");
+        ViewBag.Turnos = new SelectList((await turnosApi.ListarAsync()).OrderBy(t => t.Nombre), "Id", "Nombre");
+        ViewBag.EmpleadosIndividual = new SelectList((await empleadosApi.ListarAsync()).OrderBy(e => e.NumeroEmpleado), "Id", "NumeroEmpleado");
     }
 }

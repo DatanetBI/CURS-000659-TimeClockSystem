@@ -1,21 +1,17 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TimeClockSystem.Web.Domain;
-using TimeClockSystem.Web.Infrastructure.Data;
-using TimeClockSystem.Web.Infrastructure.Identity;
+using TimeClockSystem.Web.Infrastructure.ApiClients;
+using TimeClockSystem.Web.Infrastructure.Auth;
+using TimeClockSystem.Web.ViewModels;
 
 namespace TimeClockSystem.Web.Areas.Turnos.Controllers;
 
 [Area("Turnos")]
 [Authorize(Roles = Roles.Administrador)]
-public class TurnosController(ApplicationDbContext db) : Controller
+public class TurnosController(TurnosApiClient turnosApi) : Controller
 {
-    public async Task<IActionResult> Index()
-    {
-        var turnos = await db.Turnos.OrderBy(t => t.Nombre).ToListAsync();
-        return View(turnos);
-    }
+    public async Task<IActionResult> Index() =>
+        View((await turnosApi.ListarAsync()).OrderBy(t => t.Nombre).ToList());
 
     public IActionResult Create() => View(new Turno());
 
@@ -29,20 +25,20 @@ public class TurnosController(ApplicationDbContext db) : Controller
             return View(modelo);
         }
 
-        db.Turnos.Add(modelo);
-        await db.SaveChangesAsync();
+        if (!await turnosApi.CrearAsync(modelo))
+        {
+            ModelState.AddModelError(string.Empty, "No se pudo crear el turno.");
+            return View(modelo);
+        }
+
         TempData["Mensaje"] = $"Turno \"{modelo.Nombre}\" creado correctamente.";
         return RedirectToAction(nameof(Index));
     }
 
     public async Task<IActionResult> Edit(int id)
     {
-        var turno = await db.Turnos.FindAsync(id);
-        if (turno is null)
-        {
-            return NotFound();
-        }
-        return View(turno);
+        var turno = await turnosApi.ObtenerAsync(id);
+        return turno is null ? NotFound() : View(turno);
     }
 
     [HttpPost]
@@ -60,8 +56,12 @@ public class TurnosController(ApplicationDbContext db) : Controller
             return View(modelo);
         }
 
-        db.Turnos.Update(modelo);
-        await db.SaveChangesAsync();
+        if (!await turnosApi.ActualizarAsync(id, modelo))
+        {
+            ModelState.AddModelError(string.Empty, "No se pudo actualizar el turno.");
+            return View(modelo);
+        }
+
         TempData["Mensaje"] = $"Turno \"{modelo.Nombre}\" actualizado correctamente.";
         return RedirectToAction(nameof(Index));
     }
