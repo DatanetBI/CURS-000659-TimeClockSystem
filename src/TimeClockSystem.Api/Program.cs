@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -35,18 +36,28 @@ CultureInfo.DefaultThreadCurrentUICulture = culturaMx;
 // misma máquina y comparten el almacén de claves por usuario (research.md).
 builder.Services.AddDataProtection().SetApplicationName("TimeClockSystem.Api");
 
-// Cadena de conexión desde configuración (Principio V — sin secretos en el código).
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("No se configuró ConnectionStrings:DefaultConnection.");
+// Cadena de conexión desde configuración (Principio V — sin secretos en el código). Se valida
+// contra nulo/vacío/blanco, no solo nulo: una variable de entorno presente pero vacía (p. ej.
+// ConnectionStrings__DefaultConnection= en el contenedor) MUST fallar igual que si faltara del
+// todo, en vez de dejar pasar una cadena de conexión vacía (FR-009, edge case de la spec).
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("No se configuró ConnectionStrings:DefaultConnection.");
+}
 
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(connectionString));
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 
 builder.Services.AddTimeClockIdentity();
 
 // JWT: clave de firma vía configuración/variable de entorno (Principio V), token de expiración
-// fija sin renovación silenciosa (FR-002, research.md #2).
-var jwtSigningKey = builder.Configuration["Jwt:SigningKey"]
-    ?? throw new InvalidOperationException("No se configuró Jwt:SigningKey.");
+// fija sin renovación silenciosa (FR-002, research.md #2). Misma validación estricta que la
+// cadena de conexión: nulo/vacío/blanco MUST fallar explícitamente (FR-009, edge case de la spec).
+var jwtSigningKey = builder.Configuration["Jwt:SigningKey"];
+if (string.IsNullOrWhiteSpace(jwtSigningKey))
+{
+    throw new InvalidOperationException("No se configuró Jwt:SigningKey.");
+}
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "TimeClockSystem.Api";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "TimeClockSystem.Web";
 var jwtExpirationMinutes = builder.Configuration.GetValue("Jwt:ExpirationMinutes", 60);
@@ -127,10 +138,48 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // Migrar la base de datos y sembrar roles/datos mock al iniciar (igual que el Web original).
+// Espera acotada a que la base de datos esté lista para aceptar conexiones (FR-007): reintenta
+// solo errores de conexión, dejando que un fallo real de migración (esquema incompatible) se
+// propague de inmediato y detenga el contenedor con un error claro (FR-010, research.md #4 y #5).
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await db.Database.MigrateAsync();
+
+    if (app.Environment.IsEnvironment("Testing"))
+    {
+        // Las pruebas de integración usan SQLite en un archivo temporal, aislado por corrida
+        // (CustomWebApiFactory), no SQL Server. Las migraciones se generan y expresan en SQL
+        // específico de SQL Server (p. ej. "nvarchar(max)"), que no es sintaxis válida en SQLite,
+        // así que aplicarlas ahí fallaría. EnsureCreated construye el esquema directamente desde
+        // el modelo actual de EF Core (ya adaptado por el proveedor Sqlite en tiempo de ejecución),
+        // que es todo lo que las pruebas necesitan (research.md #9).
+        await db.Database.EnsureCreatedAsync();
+    }
+    else
+    {
+        var startupLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+
+        const int maxIntentosConexion = 12;
+        var esperaEntreIntentos = TimeSpan.FromSeconds(10);
+
+        for (var intento = 1; ; intento++)
+        {
+            try
+            {
+                await db.Database.CanConnectAsync();
+                break;
+            }
+            catch (SqlException ex) when (intento < maxIntentosConexion)
+            {
+                startupLogger.LogWarning(ex,
+                    "No se pudo conectar a la base de datos (intento {Intento}/{MaxIntentos}). Reintentando en {Espera}s...",
+                    intento, maxIntentosConexion, esperaEntreIntentos.TotalSeconds);
+                await Task.Delay(esperaEntreIntentos);
+            }
+        }
+
+        await db.Database.MigrateAsync();
+    }
 
     await IdentityConfiguration.EnsureRolesCreatedAsync(scope.ServiceProvider);
     await DbSeeder.SeedAsync(scope.ServiceProvider);

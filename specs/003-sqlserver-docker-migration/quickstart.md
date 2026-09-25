@@ -73,12 +73,22 @@ de datos — comportamiento aceptado explícitamente como resultado de una acci�
 ## 5. Confirmar manejo de secretos (SC-005)
 
 ```bash
-docker compose config | grep -i "SA_PASSWORD\|SigningKey"
-docker history <imagen-api> --no-trunc | grep -i "password\|signingkey"
+# El archivo versionado docker-compose.yml solo debe referenciar variables, nunca un valor real:
+grep -n "PASSWORD\|SigningKey" docker-compose.yml
+
+# .env (con los valores reales) no debe estar rastreado por git:
+git check-ignore -v .env
+
+# Las imágenes construidas no deben contener el valor real en ninguna capa:
+docker history timeclocksystem-api --no-trunc | grep -i "password\|signingkey"
+docker history timeclocksystem-web --no-trunc | grep -i "password\|signingkey"
 ```
 
-**Validación esperada**: los valores reales de secretos no aparecen embebidos en el historial de
-la imagen construida; solo se observan referencias a variables de entorno.
+**Validación esperada**: `docker-compose.yml` solo muestra `${MSSQL_SA_PASSWORD}` /
+`${JWT_SIGNING_KEY}` (nunca un valor literal), `.env` aparece como ignorado por Git, y ninguna
+capa de las imágenes construidas contiene el valor real del secreto. (`docker compose config` sí
+mostrará los valores reales resueltos — es la introspección de la configuración en ejecución, no
+un archivo versionado ni la imagen, así que no cuenta como una fuga.)
 
 ## 6. Confirmar que `dotnet run` sigue funcionando sin Docker (FR-013)
 
@@ -97,8 +107,12 @@ necesidad de Docker.
 ## 7. Confirmar fallo explícito ante un secreto faltante (edge case)
 
 ```bash
-docker compose run --rm -e JWT_SIGNING_KEY= api
+# IMPORTANTE: la variable que lee el Backend es "Jwt__SigningKey" (doble guion bajo, el nombre
+# que docker-compose.yml le inyecta dentro del contenedor), no "JWT_SIGNING_KEY" (esa es la
+# variable de ".env" que solo se usa para *construir* Jwt__SigningKey al levantar Compose).
+docker compose run --rm -e Jwt__SigningKey= api
 ```
 
-**Validación esperada**: el contenedor `api` falla al iniciar con un mensaje de error claro (no
-arranca "silenciosamente" con una clave insegura embebida).
+**Validación esperada**: el contenedor `api` falla al iniciar con un mensaje de error claro ("No
+se configuró Jwt:SigningKey.") y se detiene (no queda escuchando peticiones ni arranca
+"silenciosamente" con una clave insegura o vacía embebida).

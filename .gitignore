@@ -21,6 +21,9 @@ x86/
 *.db-shm
 *.db-wal
 
+# Secretos locales de Docker Compose (contraseña de SQL Server, clave de firma JWT) — nunca commitear
+.env
+
 # Rider / VS / VS Code
 .vs/
 .vscode/

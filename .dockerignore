@@ -1,0 +1,26 @@
+# .NET build output — reconstruido dentro de la imagen
+**/bin/
+**/obj/
+
+# Control de versiones y metadatos de editor/IDE
+.git/
+.gitignore
+.vs/
+.vscode/
+.idea/
+*.iml
+
+# Datos y secretos locales — nunca deben entrar al contexto de build
+*.db
+*.db-shm
+*.db-wal
+.env
+
+# Documentación de la especificación y pruebas — no forman parte de la imagen en ejecución
+specs/
+tests/
+
+# Resultados de pruebas
+[Tt]est[Rr]esult*/
+coverage/
+*.trx
