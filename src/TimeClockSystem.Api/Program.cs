@@ -185,11 +185,11 @@ using (var scope = app.Services.CreateScope())
     await DbSeeder.SeedAsync(scope.ServiceProvider);
 }
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Swagger visible en todo ambiente (incluido el sitio publicado): la API se documenta a
+// propósito para poder probarse de forma independiente del Frontend (FR-006,
+// specs/002-split-backend-frontend), no expone secretos ni datos — solo el contrato HTTP.
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
