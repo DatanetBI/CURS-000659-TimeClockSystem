@@ -38,3 +38,11 @@ Thumbs.db
 [Tt]est[Rr]esult*/
 coverage/
 *.trx
+
+# Web Deploy: la password de despliegue vive aquí (Principio V) — nunca commitear
+*.pubxml.user
+
+# Archivos de bloqueo temporal de Office
+~$*.pptx
+~$*.docx
+~$*.xlsx
