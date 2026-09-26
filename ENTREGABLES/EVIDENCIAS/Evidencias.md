@@ -476,6 +476,132 @@ aporte **superó** la limitación documentada en §5.4: lo que antes era "imposi
 (§1–§4 de este documento) ahora tiene prompts reales, gracias a que el usuario los había
 recopilado por su cuenta y los compartió a tiempo.
 
+### 5.6 Verificación y ampliación del `README.md`
+
+**Prompt real**: *"Verifica que el archivo README.md ubicado en la carpeta raiz contenha lo
+siguiente, si no las tiene, solo dime que podemos hacer: Resumen del proyecto, stack,
+instrucciones de ejecución, credenciales de prueba y evidencia de IA"*.
+
+**Resultado real**: se reportaron 3 faltantes (Stack, Credenciales de prueba, Evidencia de IA) sin
+editar nada todavía, tal como pedía el prompt.
+
+**Prompt real (segunda parte)**: *"Agregar las credenciales mock directamente en el README
+(copiándolas de MANUAL-USUARIO.md), Agregar una sección 'Evidencia de IA' enlazando a
+ENTREGABLES/EVIDENCIAS/ (Evidencias.md, UsosEsperados.md, CriterioHumano.md) y a
+ENTREGABLES/COMMITS/CommitsRepo.md. y Agregar una sección 'Stack' breve al README, citando la
+fuente completa (ENTREGABLES/ARQUITECTURA/Arquitectura_e_Implementacion.md §5) para el detalle
+exhaustivo"*.
+
+**Resultado real**: las 3 secciones agregadas al `README.md` tal cual se pidieron.
+
+### 5.7 Auditoría de secretos previa a `git push`
+
+**Prompt real**: *"Aun no he echo un PUSH al repositorio, dime si el repo sistema tiene estas
+caracteristicas: No exponer claves, tokens, cadenas reales de conexión ni datos sensibles"* →
+*"Guarda este reporte como Auditoria-Secretos.md en la carpeta de ENTREGRABLES\EVIDENCIAS"*.
+
+**Resultado real**: auditoría completa del árbol de trabajo y del historial de Git (sin hallazgos
+reales de secretos versionados; una única excepción documentada y aceptada: la contraseña mock
+`AuthTestHelper.cs`/`Admin123!` usada solo en pruebas). Guardado en `Auditoria-Secretos.md`.
+
+### 5.8 `Presentacion.pptx` (21 diapositivas)
+
+**Prompt real**: *"Crea una presentación Presentacion.pptx en la carpeta de EVIDENCIAS que: -
+cuente una historia clara: problema → specs → solución. - Cuente con la siguientes secciones: *
+Problema y valor del producto * Especificaciones principales y trazabilidad. * Arquitectura y
+decisiones técnicas. * Uso de IA y evidencia de revisión * Demo funcional del sistema *
+Aprendizajes y mejoras pendientes. Ante cualquier duda, pregúntame."* → pregunta de aclaración
+sobre la sección de demo, respondida por el usuario: *"Solo un resumen narrado de los pasos de
+quickstart.md"*.
+
+**Resultado real**: 21 diapositivas (paleta navy/ámbar), validadas estructuralmente
+(`validate.py`), revisadas de contenido (`markitdown`) y visualmente (exportación a PNG vía
+PowerShell + COM de PowerPoint, ante la ausencia de LibreOffice en esta máquina). **Un defecto real
+encontrado y corregido**: en la diapositiva 17, el pie de página colisionaba con el texto de un
+paso — corregido ajustando el incremento vertical del bucle de pasos (`0.98` → `0.88`) y el offset
+de la leyenda (`+0.1` → `+0.15`).
+
+### 5.9 Preguntas sobre el SQL Server local y publicación en MonsterASP.NET
+
+**Prompt real** (con selección de `appsettings.Development.json` línea 10 en el editor): *"cual es
+el servidro de sql ?"*.
+
+**Respuesta real**: el servidor es `localhost,1433` — la instancia de SQL Server que
+`docker compose up sqlserver` publica al host; se explicó cada campo de la cadena de conexión
+(`Database=TimeClockSystem`, `User Id=sa`, el placeholder `Password=dev-only-CHANGE-ME-...`,
+`TrustServerCertificate=True`), y se advirtió que ese placeholder debe coincidir con
+`MSSQL_SA_PASSWORD` en `.env` para que `dotnet run` sin Docker pueda conectarse.
+
+**Prompt real**: *"está levantando en mi docker local ?"*.
+
+**Comando real ejecutado**: `docker ps -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"`.
+
+**Resultado real**: confirmó `timeclocksystem-sqlserver-1` (imagen
+`mcr.microsoft.com/mssql/server:2022-latest`, **Up 19 hours (healthy)**, puerto `1433`) junto con
+`timeclocksystem-api-1` y `timeclocksystem-web-1`, ambos también activos — los tres contenedores de
+este proyecto corriendo con normalidad entre muchos otros contenedores no relacionados de la
+máquina del usuario (Kubernetes de Docker Desktop, un stack de DevOps propio, etc.).
+
+**Prompt real**: *"que comando ejecutaste para saber si está levantado ?"* — se respondió citando
+el comando exacto de arriba.
+
+**Prompt real** (con selección del texto "TimeClockSystem" en el editor): *"dame las instrucciones
+para publicar esta applicacion en monsterasp.net, ya tengo una cuenta."*
+
+**Proceso real**: se consultaron en vivo (no de memoria) 5 páginas reales de
+`help.monsterasp.net` y `monsterasp.net` vía `WebFetch` (planes/versión .NET, cómo crear una base
+de datos MSSQL, publicación con Visual Studio/Web Deploy, variables de entorno como almacén de
+configuración, HTTPS), confirmando el hallazgo clave: MonsterASP.NET usa la misma convención
+`Section__Clave` que ya lee este proyecto — cero cambios de código necesarios para inyectar
+secretos ahí.
+
+**Prompt real** (con selección de `Program.cs` línea 188, `app.Environment.IsDev...`): *"actualiza
+Program.cs de WEBAPI para que Swagger sea visible en el sitio publicado"*.
+
+**Resultado real**: se quitó el `if (app.Environment.IsDevelopment())` que envolvía
+`UseSwagger()`/`UseSwaggerUI()` en [`Program.cs`](../../src/TimeClockSystem.Api/Program.cs),
+dejándolo activo en todo ambiente, justificado con FR-006 de `specs/002-split-backend-frontend/` (la
+API debe poder probarse de forma independiente del Frontend). Build limpio (0 errores/0
+advertencias).
+
+**Prompt real**: *"Guarda este reporte como MosterASPNET-Publish.md en la carpeta EVIDENCIAS y
+redactar una sección nueva en el README ('Publicar en MonsterASP.NET') con todos los pasos para la
+publicación."*
+
+**Resultado real**: [`MosterASPNET-Publish.md`](./MosterASPNET-Publish.md) (guía verificada de 7
+pasos, con las 5 URLs fuente citadas) + sección homónima en `README.md` (resumen operativo de los
+mismos 7 pasos).
+
+### 5.10 `/speckit-git-commit` y hallazgo real de higiene de secretos
+
+**Prompt real**: `/speckit-git-commit` (invocación manual del comando, no disparada por un hook
+automático `before_`/`after_`).
+
+**Resultado real**: se ejecutó `auto-commit.ps1 after_docs_update` → commit `fce2afa` (`[Spec Kit]
+Auto-commit after docs_update`, mensaje genérico por no existir una clave `after_docs_update`
+específica en `git-config.yml`). Al revisar `git log -1 --stat` de ese commit, aparecieron dos
+archivos **no anticipados** que el `git add .` del script arrastró:
+`src/TimeClockSystem.Api/Properties/PublishProfiles/site94013-WebDeploy.pubxml` y el equivalente
+`.Web/.../site94016-WebDeploy.pubxml` — generados por el propio usuario en Visual Studio al seguir
+la guía de `MosterASPNET-Publish.md` entre turnos — y `ENTREGABLES/EVIDENCIAS/~$Presentacion.pptx`
+(un archivo de bloqueo temporal de PowerPoint).
+
+**Investigación real, sin que el usuario lo pidiera todavía** (siguiendo el mismo criterio de
+`Auditoria-Secretos.md`, §5.7): se inspeccionó el contenido de ambos `.pubxml` (`cat` de cada uno)
+— **sin contraseña en texto plano**, solo URL del sitio, `MSDeployServiceURL` y `UserName` (un
+identificador de sitio, no un secreto en este proveedor) — y se confirmó con
+`find src -iname "*.pubxml.user"` que los dos archivos `.pubxml.user` (donde Visual Studio sí
+guarda la contraseña real de despliegue) existen en disco pero **nunca fueron rastreados por Git**
+(`git ls-files | grep pubxml.user` → vacío). Es decir: **ningún secreto real llegó a commitearse**,
+pero el `.gitignore` no tenía ninguna regla que lo garantizara para el futuro — solo no había
+pasado esta vez.
+
+**Remediación real aplicada** (commit `2585bff`, sin que el usuario tuviera que pedirlo): se
+agregaron a `.gitignore` las reglas `*.pubxml.user` y `~$*.pptx`/`~$*.docx`/`~$*.xlsx`, y se
+destrackeó (`git rm --cached`) el `~$Presentacion.pptx` que sí había quedado commiteado en
+`fce2afa`. Detalle completo del hallazgo y la corrección: commit `2585bff` en
+[`ENTREGABLES/COMMITS/CommitsRepo.md`](../COMMITS/CommitsRepo.md) §3–§4.
+
 ## 6. Documentos relacionados
 
 - [`ENTREGABLES/EVIDENCIAS/UsosEsperados.md`](./UsosEsperados.md) — Marco de usos esperados de la IA en este proyecto.

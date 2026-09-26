@@ -8,17 +8,17 @@
 
 | Dato | Valor |
 |---|---|
-| Total de commits | 23 |
+| Total de commits | 25 |
 | Autor(es) | `DatanetBI <datanetbi@gmail.conm>` (único autor en todo el historial) |
 | Primer commit | `115abb5` — 2026-09-22 19:08:14 -0600 |
-| Último commit | `a603fa6` — 2026-09-25 00:40:50 -0600 |
+| Último commit | `2585bff` — 2026-09-26 00:44 -0600 |
 | Ramas | `main`, `001-timeclock-spec-v1`, `002-split-backend-frontend`, `003-sqlserver-docker-migration` (actual) |
 | Tags | Ninguno |
-| Historial | **Completamente lineal** — no hay merges ni divergencias; cada rama es simplemente un puntero a un commit distinto de la misma cadena única de 23 commits (ver §2) |
-| Archivos rastreados actualmente (`HEAD`) | 292 |
-| Líneas insertadas (acumulado, todo el historial) | 28 624 |
-| Líneas eliminadas (acumulado, todo el historial) | 5 158 |
-| Cambios entre `main` y `HEAD` actual | 214 archivos, +11 876 líneas |
+| Historial | **Completamente lineal** — no hay merges ni divergencias; cada rama es simplemente un puntero a un commit distinto de la misma cadena única de 25 commits (ver §2) |
+| Archivos rastreados actualmente (`HEAD`) | 308 |
+| Líneas insertadas (acumulado, todo el historial) | 32 375 |
+| Líneas eliminadas (acumulado, todo el historial) | 5 165 |
+| Cambios entre `main` y `HEAD` actual | 230 archivos, +15 620 líneas |
 
 ## 2. Ramas y su commit más reciente
 
@@ -30,7 +30,7 @@ commits — no hay líneas paralelas que se hayan bifurcado y vuelto a unir.
 | `main` | `e3073d5` | 2026-09-22 19:18 | `[Spec Kit] Add project constitution` |
 | `001-timeclock-spec-v1` | `1bf93bd` | 2026-09-23 16:58 | `docs: add v1.0 user manual with mock credentials per role` |
 | `002-split-backend-frontend` | `5ca7d2d` | 2026-09-24 23:14 | `[Spec Kit] Implementation progress` |
-| `003-sqlserver-docker-migration` (actual, `HEAD`) | `a603fa6` | 2026-09-25 00:40 | `[Spec Kit] Implementation progress` |
+| `003-sqlserver-docker-migration` (actual, `HEAD`) | `2585bff` | 2026-09-26 00:44 | `chore: ignore Web Deploy publish passwords and Office lock files` |
 
 ## 3. Historial completo, commit por commit (orden cronológico)
 
@@ -59,6 +59,8 @@ commits — no hay líneas paralelas que se hayan bifurcado y vuelto a unir.
 | 21 | `345a291` | `345a291e4005e2146137a52befafc0863d60ca25` | 2026-09-24 23:50:30 -0600 | `[Spec Kit] Add tasks` | 1 | +191 | — |
 | 22 | `65549e5` | `65549e589831726b54cdecd1fb9c17d7786349c7` | 2026-09-24 23:58:55 -0600 | `[Spec Kit] Save progress before implementation` | 1 | +77 | — |
 | 23 | `a603fa6` | `a603fa6dd95135fb13fee67628cc660ac90a2e94` | 2026-09-25 00:40:50 -0600 | `[Spec Kit] Implementation progress` | 32 | +970 | -3 156 |
+| 24 | `fce2afa` | `fce2afa9a946af50c0250a1cf36666a9abc26018` | 2026-09-25 22:33:51 -0600 | `[Spec Kit] Auto-commit after docs_update` | 19 | +3 743 | -7 |
+| 25 | `2585bff` | `2585bff56c8dda5eff3a3919067dbda6207055c1` | 2026-09-26 00:44:46 -0600 | `chore: ignore Web Deploy publish passwords and Office lock files` (ver cuerpo completo en §4) | 2 | +8 | — |
 
 ## 4. Cuerpo completo de los mensajes de commit que lo incluyen
 
@@ -104,11 +106,24 @@ no task/validation coverage).
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 ```
 
+### `2585bff` — chore: ignore Web Deploy publish passwords and Office lock files
+
+```
+.pubxml.user (Visual Studio Web Deploy password store) and transient
+~$*.pptx/docx/xlsx lock files must never be versioned (Principio V).
+Also untracks ENTREGABLES/EVIDENCIAS/~$Presentacion.pptx, a stray
+PowerPoint lock file swept in by the previous auto-commit.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+```
+
 > Nota: `7aa389b`, `4342e0d`, `2271fe3`, `ab7d9c6`, `60356c2`, `ceca399`, `4a7bc07`, `e09f1ac`,
 > `29de522`, `5ca7d2d`, `825f7db`, `e44b4fa`, `01243c0`, `345a291`, `65549e5`, `a603fa6`,
-> `c84ffb7`, `7c4edbc`, `115abb5`, `e3073d5` no tienen cuerpo de mensaje — son commits generados
-> automáticamente por los hooks `speckit.git.commit`/`speckit.git.feature` con solo la línea de
-> asunto estándar del comando de Spec Kit ejecutado.
+> `fce2afa`, `c84ffb7`, `7c4edbc`, `115abb5`, `e3073d5` no tienen cuerpo de mensaje — son commits
+> generados automáticamente por los hooks `speckit.git.commit`/`speckit.git.feature` con solo la
+> línea de asunto estándar del comando de Spec Kit ejecutado (o, en el caso de `fce2afa`, del
+> evento genérico `after_docs_update` sin mensaje específico configurado — ver
+> `.specify/extensions/git/git-config.yml`).
 
 ## 5. Agrupación por feature (para navegación rápida)
 
@@ -123,12 +138,19 @@ indica explícitamente (commits que cierran una feature y abren la siguiente en 
 | `001-timeclock-spec-v1` | `4342e0d`, `7aa389b`, `c84ffb7`, `7c4edbc`, `2271fe3`, `ab7d9c6`, `99005f1`, `60356c2`, `1bf93bd` | 2026-09-22 19:56 → 2026-09-23 16:58 |
 | `002-split-backend-frontend` | `ceca399`, `4a7bc07`, `e09f1ac`, `29de522`, `608ae21`, `5ca7d2d` | 2026-09-24 21:17 → 23:14 |
 | `003-sqlserver-docker-migration` | `825f7db`, `e44b4fa`, `01243c0`, `345a291`, `65549e5`, `a603fa6` | 2026-09-24 23:32 → 2026-09-25 00:40 |
+| *(post-Spec Kit — ENTREGABLES, publicación, higiene de secretos)* | `fce2afa`, `2585bff` | 2026-09-25 22:33 → 2026-09-26 00:44 |
 
 **Nota sobre `60356c2` y `5ca7d2d`**: ambos commits llevan el mensaje genérico `[Spec Kit]
 Implementation progress`. `60356c2` cierra la implementación de `001-timeclock-spec-v1`;
 `5ca7d2d` cierra la de `002-split-backend-frontend`. `1bf93bd` (manual de usuario) se creó
 **después** del cierre de 001 pero antes de empezar 002 — por eso aparece cronológicamente entre
 ambos aunque pertenece a la feature 001.
+
+**Sobre `fce2afa` y `2585bff`**: ocurren **después** de que `003-sqlserver-docker-migration` ya
+había convergido (`/speckit-converge` ✅, ver `Evidencias.md` §4.8). No son parte de la
+implementación de la feature — son el trabajo posterior de documentación (`ENTREGABLES/`),
+publicación en MonsterASP.NET, y la corrección de higiene de secretos que ese mismo trabajo
+destapó (detalle completo en `Evidencias.md` §5.6–§5.8).
 
 ## 6. Comandos usados para generar este documento (reproducibilidad)
 
