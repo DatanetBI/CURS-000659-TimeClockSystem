@@ -1,0 +1,39 @@
+@model Turno
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<input type="hidden" asp-for="Id" />
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label asp-for="Nombre" class="form-label"></label>
+        <input asp-for="Nombre" class="form-control" />
+        <span asp-validation-for="Nombre" class="text-danger"></span>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label asp-for="Tipo" class="form-label"></label>
+        <select asp-for="Tipo" class="form-select" asp-items="Html.GetEnumSelectList<TipoTurno>()"></select>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-3 mb-3">
+        <label asp-for="HoraEntrada" class="form-label"></label>
+        <input asp-for="HoraEntrada" class="form-control" type="time" />
+        <span asp-validation-for="HoraEntrada" class="text-danger"></span>
+    </div>
+    <div class="col-md-3 mb-3">
+        <label asp-for="HoraSalida" class="form-label"></label>
+        <input asp-for="HoraSalida" class="form-control" type="time" />
+        <span asp-validation-for="HoraSalida" class="text-danger"></span>
+    </div>
+    <div class="col-md-3 mb-3">
+        <label asp-for="DuracionRecesoMinutos" class="form-label"></label>
+        <input asp-for="DuracionRecesoMinutos" class="form-control" />
+        <span asp-validation-for="DuracionRecesoMinutos" class="text-danger"></span>
+    </div>
+    <div class="col-md-3 mb-3">
+        <label asp-for="ToleranciaMinutos" class="form-label"></label>
+        <input asp-for="ToleranciaMinutos" class="form-control" />
+        <span asp-validation-for="ToleranciaMinutos" class="text-danger"></span>
+    </div>
+</div>
+<button type="submit" class="btn btn-primary">Guardar</button>
+<a asp-action="Index" class="btn btn-link">Cancelar</a>

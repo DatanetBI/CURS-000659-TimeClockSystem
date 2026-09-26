@@ -1,0 +1,35 @@
+@model Empleado
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<input type="hidden" asp-for="Id" />
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label asp-for="NumeroEmpleado" class="form-label"></label>
+        <input asp-for="NumeroEmpleado" class="form-control" />
+        <span asp-validation-for="NumeroEmpleado" class="text-danger"></span>
+    </div>
+    <div class="col-md-8 mb-3">
+        <label asp-for="Nombre" class="form-label"></label>
+        <input asp-for="Nombre" class="form-control" />
+        <span asp-validation-for="Nombre" class="text-danger"></span>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label asp-for="CentroTrabajoId" class="form-label"></label>
+        <select asp-for="CentroTrabajoId" asp-items="ViewBag.CentrosTrabajo as SelectList" class="form-select">
+            <option value="">-- Selecciona un centro de trabajo --</option>
+        </select>
+        <span asp-validation-for="CentroTrabajoId" class="text-danger"></span>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label asp-for="Estado" class="form-label"></label>
+        <select asp-for="Estado" class="form-select" asp-items="Html.GetEnumSelectList<EstadoEmpleado>()"></select>
+    </div>
+</div>
+<div class="form-check mb-3">
+    <input asp-for="ConsentimientoGeolocalizacion" class="form-check-input" />
+    <label asp-for="ConsentimientoGeolocalizacion" class="form-check-label"></label>
+</div>
+<button type="submit" class="btn btn-primary">Guardar</button>
+<a asp-action="Index" class="btn btn-link">Cancelar</a>

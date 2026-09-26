@@ -1,0 +1,89 @@
+@model TimeClockSystem.Web.Areas.ConsultaAsistencias.Models.ConsultaAsistenciasViewModel
+@{
+    ViewData["Title"] = "Consulta de asistencias";
+}
+
+<h1 class="h3 mb-3">Consulta de asistencias</h1>
+
+<form method="get" class="row g-2 mb-3 align-items-end">
+    <div class="col-md-3">
+        <label class="form-label">Empleado</label>
+        <select name="empleadoId" asp-items="ViewBag.Empleados as SelectList" class="form-select">
+            <option value="">-- Todos --</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Centro de trabajo</label>
+        <select name="centroTrabajoId" asp-items="ViewBag.CentrosTrabajo as SelectList" class="form-select">
+            <option value="">-- Todos --</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Fecha</label>
+        <input type="date" name="fecha" class="form-control" value="@(Model.Filtro.Fecha?.ToString("yyyy-MM-dd"))" />
+    </div>
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Fecha/Hora</th>
+                <th>Empleado</th>
+                <th>Centro de trabajo</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Puntualidad</th>
+                <th>Día festivo</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var fila in Model.Resultados)
+        {
+            <tr>
+                <td>@fila.Timestamp.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@fila.NumeroEmpleado — @fila.NombreEmpleado</td>
+                <td>@fila.CentroTrabajo</td>
+                <td>@fila.Tipo</td>
+                <td>
+                    @if (fila.Estado == TimeClockSystem.Web.ViewModels.EstadoMarca.Valida)
+                    {
+                        <span class="badge bg-success">Válida</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger" title="@fila.MotivoRechazo">Rechazada</span>
+                    }
+                </td>
+                <td>
+                    @if (fila.Puntualidad == TimeClockSystem.Web.ViewModels.IndicadorPuntualidad.Puntual)
+                    {
+                        <span class="badge bg-success">Puntual</span>
+                    }
+                    else if (fila.Puntualidad == TimeClockSystem.Web.ViewModels.IndicadorPuntualidad.Tardio)
+                    {
+                        <span class="badge bg-warning text-dark">Tardío</span>
+                    }
+                    else if (fila.Puntualidad == TimeClockSystem.Web.ViewModels.IndicadorPuntualidad.SinTurnoAsignado)
+                    {
+                        <span class="badge bg-secondary">Sin turno</span>
+                    }
+                </td>
+                <td>
+                    @if (fila.EsDiaFestivo)
+                    {
+                        <span class="badge bg-info text-dark">Festivo</span>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Resultados.Any())
+    {
+        <p class="text-muted">No hay marcas que coincidan con el filtro.</p>
+    }
+</div>

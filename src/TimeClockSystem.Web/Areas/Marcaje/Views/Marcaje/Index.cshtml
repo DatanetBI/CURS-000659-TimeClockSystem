@@ -1,0 +1,81 @@
+@model TimeClockSystem.Web.Areas.Marcaje.Models.MarcajeIndexViewModel
+@{
+    ViewData["Title"] = "Marcar asistencia";
+}
+
+<h1 class="h3 mb-3">Hola, @Model.NombreEmpleado</h1>
+
+<div class="row">
+    <div class="col-md-5 mb-4">
+        <form id="form-marcaje" asp-action="Registrar" method="post">
+            <input type="hidden" name="Latitud" id="Latitud" />
+            <input type="hidden" name="Longitud" id="Longitud" />
+            <div class="mb-3">
+                <label class="form-label">Tipo de marca</label>
+                <select name="Tipo" class="form-select">
+                    @if (Model.TieneEntradaAbierta)
+                    {
+                        <option value="Salida" selected>Salida</option>
+                        <option value="Entrada">Entrada</option>
+                    }
+                    else
+                    {
+                        <option value="Entrada" selected>Entrada</option>
+                        <option value="Salida">Salida</option>
+                    }
+                    <option value="InicioReceso">Inicio de receso</option>
+                    <option value="FinReceso">Fin de receso</option>
+                </select>
+            </div>
+            <p class="text-muted small" id="estado-ubicacion">Obteniendo tu ubicación…</p>
+            <button type="submit" class="btn btn-primary btn-lg w-100">Marcar</button>
+        </form>
+    </div>
+    <div class="col-md-7">
+        <h2 class="h5">Marcas de hoy</h2>
+        <table class="table table-sm">
+            <thead><tr><th>Hora</th><th>Tipo</th><th>Estado</th></tr></thead>
+            <tbody>
+            @foreach (var marca in Model.MarcasDeHoy)
+            {
+                <tr>
+                    <td>@marca.Timestamp.ToLocalTime().ToString("HH:mm")</td>
+                    <td>@marca.Tipo</td>
+                    <td>
+                        @if (marca.Estado == TimeClockSystem.Web.ViewModels.EstadoMarca.Valida)
+                        {
+                            <span class="badge bg-success">Válida</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Rechazada (@marca.MotivoRechazo)</span>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        @if (!Model.MarcasDeHoy.Any())
+        {
+            <p class="text-muted">Todavía no tienes marcas registradas hoy.</p>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const estado = document.getElementById('estado-ubicacion');
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    document.getElementById('Latitud').value = pos.coords.latitude;
+                    document.getElementById('Longitud').value = pos.coords.longitude;
+                    estado.textContent = 'Ubicación detectada.';
+                },
+                () => { estado.textContent = 'No se pudo obtener tu ubicación; se marcará sin geolocalización.'; }
+            );
+        } else {
+            estado.textContent = 'Tu navegador no soporta geolocalización.';
+        }
+    </script>
+}

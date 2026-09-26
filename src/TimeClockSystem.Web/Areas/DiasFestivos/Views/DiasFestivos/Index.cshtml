@@ -1,0 +1,33 @@
+@model IEnumerable<DiaFestivo>
+@{
+    ViewData["Title"] = "Días festivos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Días festivos</h1>
+    <a class="btn btn-primary" asp-action="Create">Nuevo día festivo</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Descripción</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var festivo in Model)
+        {
+            <tr>
+                <td>@festivo.Fecha.ToString("dd/MM/yyyy")</td>
+                <td>@festivo.Descripcion</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+        <p class="text-muted">Todavía no hay días festivos registrados.</p>
+    }
+</div>

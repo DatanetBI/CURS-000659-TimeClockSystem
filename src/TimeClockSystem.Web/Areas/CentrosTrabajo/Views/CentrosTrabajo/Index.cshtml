@@ -1,0 +1,39 @@
+@model IEnumerable<CentroTrabajo>
+@{
+    ViewData["Title"] = "Centros de trabajo";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Centros de trabajo</h1>
+    <a class="btn btn-primary" asp-action="Create">Nuevo centro de trabajo</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Latitud</th>
+                <th>Longitud</th>
+                <th>Radio (m)</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var centro in Model)
+        {
+            <tr>
+                <td>@centro.Nombre</td>
+                <td>@centro.Latitud</td>
+                <td>@centro.Longitud</td>
+                <td>@centro.RadioMetros</td>
+                <td><a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@centro.Id">Editar</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+        <p class="text-muted">Todavía no hay centros de trabajo registrados.</p>
+    }
+</div>

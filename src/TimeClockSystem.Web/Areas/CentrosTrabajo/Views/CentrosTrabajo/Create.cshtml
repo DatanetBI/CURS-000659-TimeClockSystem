@@ -1,0 +1,14 @@
+@model CentroTrabajo
+@{
+    ViewData["Title"] = "Nuevo centro de trabajo";
+}
+
+<h1 class="h3 mb-3">Nuevo centro de trabajo</h1>
+
+<form asp-action="Create" method="post">
+    <partial name="_Form" />
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,42 @@
+@model IEnumerable<Empleado>
+@{
+    ViewData["Title"] = "Empleados";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Empleados</h1>
+    <a class="btn btn-primary" asp-action="Create">Nuevo empleado</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Número</th>
+                <th>Nombre</th>
+                <th>Centro de trabajo</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var empleado in Model)
+        {
+            <tr>
+                <td>@empleado.NumeroEmpleado</td>
+                <td>@empleado.Nombre</td>
+                <td>@empleado.CentroTrabajo?.Nombre</td>
+                <td>@(empleado.Estado == EstadoEmpleado.Activo ? "Activo" : "Baja")</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@empleado.Id">Editar</a>
+                    <a class="btn btn-sm btn-outline-primary" asp-controller="Pin" asp-action="AsignarPin" asp-route-empleadoId="@empleado.Id">Asignar PIN</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+        <p class="text-muted">Todavía no hay empleados registrados.</p>
+    }
+</div>

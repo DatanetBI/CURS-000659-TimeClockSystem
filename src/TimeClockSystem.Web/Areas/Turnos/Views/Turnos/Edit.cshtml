@@ -1,0 +1,14 @@
+@model Turno
+@{
+    ViewData["Title"] = "Editar turno";
+}
+
+<h1 class="h3 mb-3">Editar turno</h1>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+    <partial name="_Form" />
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

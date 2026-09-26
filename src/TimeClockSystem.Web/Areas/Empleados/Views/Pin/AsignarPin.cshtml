@@ -1,0 +1,24 @@
+@model TimeClockSystem.Web.Areas.Empleados.Models.AsignarPinViewModel
+@{
+    ViewData["Title"] = "Asignar PIN de marcaje";
+}
+
+<h1 class="h3 mb-3">Asignar PIN de marcaje — @Model.NombreEmpleado</h1>
+
+<form asp-action="AsignarPin" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="EmpleadoId" />
+    <input type="hidden" asp-for="NombreEmpleado" />
+    <div class="mb-3 col-md-4">
+        <label asp-for="Pin" class="form-label"></label>
+        <input asp-for="Pin" class="form-control" inputmode="numeric" maxlength="6" />
+        <span asp-validation-for="Pin" class="text-danger"></span>
+        <div class="form-text">Numérico, de 4 a 6 dígitos.</div>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar PIN</button>
+    <a asp-action="Index" asp-controller="Empleados" class="btn btn-link">Cancelar</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

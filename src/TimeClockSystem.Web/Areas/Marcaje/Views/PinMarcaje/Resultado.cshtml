@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Resultado del marcaje";
+    bool aceptada = ViewBag.ResultadoAceptado;
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-6 text-center">
+        @if (aceptada)
+        {
+            <div class="alert alert-success">
+                <h1 class="h4">Marca registrada</h1>
+                <p>@ViewBag.NombreEmpleado — @(((DateTime)ViewBag.HoraMarca).ToLocalTime().ToString("HH:mm"))</p>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger">
+                <h1 class="h4">Marca rechazada</h1>
+                <p>Motivo: @ViewBag.MotivoRechazo</p>
+            </div>
+        }
+        <a class="btn btn-outline-secondary" asp-controller="PinMarcaje" asp-action="Index">Marcar otra vez</a>
+    </div>
+</div>

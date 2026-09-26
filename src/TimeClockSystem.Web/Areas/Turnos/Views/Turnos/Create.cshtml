@@ -1,0 +1,14 @@
+@model Turno
+@{
+    ViewData["Title"] = "Nuevo turno";
+}
+
+<h1 class="h3 mb-3">Nuevo turno</h1>
+
+<form asp-action="Create" method="post">
+    <partial name="_Form" />
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

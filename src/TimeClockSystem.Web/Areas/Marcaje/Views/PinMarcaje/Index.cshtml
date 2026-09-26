@@ -1,0 +1,40 @@
+@model TimeClockSystem.Web.Areas.Marcaje.Models.MarcajePinViewModel
+@{
+    ViewData["Title"] = "Marcaje por PIN";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-5">
+        <h1 class="h3 mb-3 text-center">Marcar asistencia</h1>
+        <form id="form-pin" asp-action="Index" method="post">
+            <input type="hidden" name="Latitud" id="Latitud" />
+            <input type="hidden" name="Longitud" id="Longitud" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="mb-3">
+                <label asp-for="NumeroEmpleado" class="form-label"></label>
+                <input asp-for="NumeroEmpleado" class="form-control form-control-lg" autofocus />
+            </div>
+            <div class="mb-3">
+                <label asp-for="Pin" class="form-label"></label>
+                <input asp-for="Pin" class="form-control form-control-lg" inputmode="numeric" maxlength="6" />
+            </div>
+            <div class="mb-3">
+                <label asp-for="Tipo" class="form-label"></label>
+                <select asp-for="Tipo" class="form-select form-select-lg" asp-items="Html.GetEnumSelectList<TipoMarca>()"></select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg w-100">Marcar</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                document.getElementById('Latitud').value = pos.coords.latitude;
+                document.getElementById('Longitud').value = pos.coords.longitude;
+            });
+        }
+    </script>
+    <partial name="_ValidationScriptsPartial" />
+}
